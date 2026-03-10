@@ -39,13 +39,8 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Require a local image for now. This keeps first-run behavior predictable.
-	exists, err := container.ImageExists(cli, cfg.ImageRef())
-	if err != nil {
+	if err := container.EnsureImageAvailable(cli, cfg.ImageRef(), cfg.Image.Name, cfg.Image.Tag, os.Stdout); err != nil {
 		return err
-	}
-	if !exists {
-		return fmt.Errorf("image %s is not available locally\nRun 'clawsandbox build' first", cfg.ImageRef())
 	}
 
 	// Ensure network

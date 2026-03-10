@@ -22,12 +22,28 @@ func NewClient() (*docker.Client, error) {
 		return cli, nil
 	}
 
-	contextHost, err := dockerContextHostCandidate()
+	ctx, err := currentDockerContext()
 	if err != nil {
 		return nil, err
 	}
+	if ctx != nil {
+		host, err := dockerHostFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+		cli, err := docker.NewClient(host)
+		if err != nil {
+			return nil, fmt.Errorf("connecting to Docker using current context %q (%s): %w\nClawSandbox will not fall back to a different Docker daemon. Start that Docker engine or switch to a reachable local context.",
+				ctx.Name, host, err)
+		}
+		if err := cli.Ping(); err != nil {
+			return nil, fmt.Errorf("connecting to Docker using current context %q (%s): %w\nClawSandbox will not fall back to a different Docker daemon. Start that Docker engine or switch to a reachable local context.",
+				ctx.Name, host, err)
+		}
+		return cli, nil
+	}
 
-	candidates := dockerHostCandidates(contextHost)
+	candidates := dockerHostCandidates("")
 	tried := make([]string, 0, len(candidates))
 	for _, host := range candidates {
 		cli, err := docker.NewClient(host)
@@ -98,14 +114,6 @@ type dockerContextInfo struct {
 	HasTLSMaterial bool
 }
 
-func dockerContextHostCandidate() (string, error) {
-	ctx, err := currentDockerContext()
-	if err != nil || ctx == nil {
-		return "", err
-	}
-	return dockerHostFromContext(ctx)
-}
-
 func dockerHostFromContext(ctx *dockerContextInfo) (string, error) {
 	switch {
 	case strings.HasPrefix(ctx.Host, "unix://"):
@@ -130,6 +138,16 @@ func currentDockerContext() (*dockerContextInfo, error) {
 		return nil, nil
 	}
 
+	if contextName := strings.TrimSpace(os.Getenv("DOCKER_CONTEXT")); contextName != "" {
+		if contextName == "default" {
+			return &dockerContextInfo{
+				Name: "default",
+				Host: "unix:///var/run/docker.sock",
+			}, nil
+		}
+		return dockerContextByName(home, contextName)
+	}
+
 	configPath := filepath.Join(home, ".docker", "config.json")
 	data, err := os.ReadFile(configPath)
 	if err != nil {
@@ -146,6 +164,10 @@ func currentDockerContext() (*dockerContextInfo, error) {
 		return nil, nil
 	}
 
+	return dockerContextByName(home, cfg.CurrentContext)
+}
+
+func dockerContextByName(home, contextName string) (*dockerContextInfo, error) {
 	metaFiles, err := filepath.Glob(filepath.Join(home, ".docker", "contexts", "meta", "*", "meta.json"))
 	if err != nil {
 		return nil, nil
@@ -167,7 +189,7 @@ func currentDockerContext() (*dockerContextInfo, error) {
 		if err := json.Unmarshal(metaData, &meta); err != nil {
 			continue
 		}
-		if meta.Name == cfg.CurrentContext && meta.Endpoints.Docker.Host != "" {
+		if meta.Name == contextName && meta.Endpoints.Docker.Host != "" {
 			contextID := filepath.Base(filepath.Dir(metaPath))
 			return &dockerContextInfo{
 				Name:           meta.Name,
@@ -177,7 +199,7 @@ func currentDockerContext() (*dockerContextInfo, error) {
 			}, nil
 		}
 	}
-	return nil, fmt.Errorf("current Docker context %q is set, but its metadata could not be found", cfg.CurrentContext)
+	return nil, fmt.Errorf("current Docker context %q is set, but its metadata could not be found", contextName)
 }
 
 func hasDockerContextTLSMaterial(home, contextID string) bool {

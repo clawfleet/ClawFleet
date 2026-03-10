@@ -1,6 +1,8 @@
 package container
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -72,5 +74,32 @@ func TestDockerHostFromContext(t *testing.T) {
 				t.Fatalf("expected host %q, got %q", tt.wantHost, got)
 			}
 		})
+	}
+}
+
+func TestCurrentDockerContextHonorsEnvOverride(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("DOCKER_CONTEXT", "default")
+
+	if err := os.MkdirAll(filepath.Join(home, ".docker"), 0755); err != nil {
+		t.Fatalf("mkdir .docker: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(home, ".docker", "config.json"), []byte(`{"currentContext":"desktop-linux"}`), 0644); err != nil {
+		t.Fatalf("write config.json: %v", err)
+	}
+
+	ctx, err := currentDockerContext()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if ctx == nil {
+		t.Fatal("expected context, got nil")
+	}
+	if ctx.Name != "default" {
+		t.Fatalf("expected context name %q, got %q", "default", ctx.Name)
+	}
+	if ctx.Host != "unix:///var/run/docker.sock" {
+		t.Fatalf("expected host %q, got %q", "unix:///var/run/docker.sock", ctx.Host)
 	}
 }

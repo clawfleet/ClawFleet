@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -13,6 +14,14 @@ var rootCmd = &cobra.Command{
 	Long: `ClawSandbox lets you spin up multiple isolated OpenClaw instances
 on a single machine. Each instance runs in its own Docker container
 with a full Linux desktop, accessible via your browser.`,
+}
+
+type silentExitError struct {
+	code int
+}
+
+func (e silentExitError) Error() string {
+	return ""
 }
 
 func Execute() {
@@ -34,6 +43,10 @@ func Execute() {
 	)
 
 	if err := rootCmd.Execute(); err != nil {
+		var silentErr silentExitError
+		if errors.As(err, &silentErr) {
+			os.Exit(silentErr.code)
+		}
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

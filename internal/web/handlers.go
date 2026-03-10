@@ -74,14 +74,8 @@ func (s *Server) handleCreateInstances(w http.ResponseWriter, r *http.Request) {
 
 	cfg := s.config
 
-	exists, err := container.ImageExists(s.docker, cfg.ImageRef())
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if !exists {
-		writeError(w, http.StatusPreconditionFailed, fmt.Sprintf(
-			"image %s is not available locally — run 'clawsandbox build' first", cfg.ImageRef()))
+	if err := container.EnsureImageAvailable(s.docker, cfg.ImageRef(), cfg.Image.Name, cfg.Image.Tag, log.Writer()); err != nil {
+		writeError(w, http.StatusPreconditionFailed, err.Error())
 		return
 	}
 

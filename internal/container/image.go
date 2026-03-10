@@ -29,6 +29,34 @@ func ImageExists(cli *docker.Client, imageRef string) (bool, error) {
 	return false, nil
 }
 
+// EnsureImageAvailable prefers the prebuilt image and falls back to a local build
+// when the registry image cannot be pulled.
+func EnsureImageAvailable(cli *docker.Client, imageRef, repo, tag string, out io.Writer) error {
+	exists, err := ImageExists(cli, imageRef)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	if out != nil {
+		fmt.Fprintf(out, "Preparing image %s ...\n", imageRef)
+	}
+
+	if err := PullImage(cli, repo, tag, out); err == nil {
+		return nil
+	} else if out != nil {
+		fmt.Fprintln(out, "Prebuilt image unavailable, building locally instead...")
+	}
+
+	if err := Build(cli, imageRef, out); err != nil {
+		return fmt.Errorf("preparing image %s automatically failed: %w", imageRef, err)
+	}
+
+	return nil
+}
+
 func Build(cli *docker.Client, imageRef string, out io.Writer) error {
 	var lastErr error
 	for attempt := 1; attempt <= 2; attempt++ {
