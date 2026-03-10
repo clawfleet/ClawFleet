@@ -18,6 +18,7 @@ async function request(method, path, body) {
 }
 
 export const api = {
+  // Instances
   listInstances:  ()            => request('GET',    '/instances'),
   createInstances:(count)       => request('POST',   '/instances', { count }),
   startInstance:  (name)        => request('POST',   `/instances/${encodeURIComponent(name)}/start`),
@@ -25,5 +26,21 @@ export const api = {
   destroyInstance:(name, purge) => request('DELETE',  `/instances/${encodeURIComponent(name)}${purge ? '?purge=true' : ''}`),
   configureInstance: (name, config) => request('POST', `/instances/${encodeURIComponent(name)}/configure`, config),
   getConfigStatus:   (name)        => request('GET',  `/instances/${encodeURIComponent(name)}/configure/status`),
-  imageStatus:       ()            => request('GET',  '/image/status'),
+
+  // Image
+  imageStatus: () => request('GET', '/image/status'),
+
+  // Model assets
+  listModelAssets:  ()           => request('GET',    '/assets/models'),
+  createModelAsset: (data)       => request('POST',   '/assets/models', data),
+  updateModelAsset: (id, data)   => request('PUT',    `/assets/models/${encodeURIComponent(id)}`, data),
+  deleteModelAsset: (id)         => request('DELETE', `/assets/models/${encodeURIComponent(id)}`),
+  testModelAsset:   (data)       => request('POST',   '/assets/models/test', data),
+
+  // Channel assets
+  listChannelAssets:  ()           => request('GET',    '/assets/channels'),
+  createChannelAsset: (data)       => request('POST',   '/assets/channels', data),
+  updateChannelAsset: (id, data)   => request('PUT',    `/assets/channels/${encodeURIComponent(id)}`, data),
+  deleteChannelAsset: (id)         => request('DELETE', `/assets/channels/${encodeURIComponent(id)}`),
+  testChannelAsset:   (data)       => request('POST',   '/assets/channels/test', data),
 };

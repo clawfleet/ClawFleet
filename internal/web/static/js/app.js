@@ -3,18 +3,40 @@ import { useLang } from './i18n.js';
 import { api } from './api.js';
 import { connectStats, connectEvents } from './ws.js';
 import { Toolbar } from './components/toolbar.js';
+import { Sidebar } from './components/sidebar.js';
 import { Dashboard } from './components/dashboard.js';
 import { InstanceDesktop } from './components/instance-desktop.js';
 import { CreateDialog } from './components/create-dialog.js';
 import { ConfigureDialog } from './components/configure-dialog.js';
+import { ModelAssets } from './components/model-assets.js';
+import { ChannelAssets } from './components/channel-assets.js';
+import { ImagePage } from './components/image-page.js';
 import { ToastContainer, useToast } from './components/toast.js';
 import { ConnectionStatus } from './components/connection-status.js';
+
+function parseRoute(hash) {
+  if (!hash || hash === '#/' || hash === '#') return { page: 'fleet', route: '#/fleet' };
+
+  const fleetMatch = hash.match(/^#\/fleet\/(.+)$/);
+  if (fleetMatch) return { page: 'desktop', name: decodeURIComponent(fleetMatch[1]), route: '#/fleet' };
+
+  // Also support legacy #/instance/{name}
+  const legacyMatch = hash.match(/^#\/instance\/(.+)$/);
+  if (legacyMatch) return { page: 'desktop', name: decodeURIComponent(legacyMatch[1]), route: '#/fleet' };
+
+  if (hash === '#/fleet') return { page: 'fleet', route: '#/fleet' };
+  if (hash === '#/assets/models') return { page: 'models', route: '#/assets/models' };
+  if (hash === '#/assets/channels') return { page: 'channels', route: '#/assets/channels' };
+  if (hash === '#/system/image') return { page: 'image', route: '#/system/image' };
+
+  return { page: 'fleet', route: '#/fleet' };
+}
 
 function App() {
   const { t } = useLang();
   const [instances, setInstances] = useState([]);
   const [stats, setStats] = useState({});
-  const [view, setView] = useState({ page: 'dashboard' });
+  const [view, setView] = useState(() => parseRoute(location.hash));
   const [showCreate, setShowCreate] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState({});
@@ -24,16 +46,22 @@ function App() {
 
   useEffect(() => {
     function onHash() {
-      const match = location.hash.match(/^#\/instance\/(.+)$/);
-      setView(match ? { page: 'desktop', name: decodeURIComponent(match[1]) } : { page: 'dashboard' });
+      setView(parseRoute(location.hash));
     }
     window.addEventListener('hashchange', onHash);
     onHash();
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  const navigate = useCallback((name) => {
-    location.hash = name ? `#/instance/${encodeURIComponent(name)}` : '#/';
+  const navigate = useCallback((target) => {
+    if (target && !target.startsWith('#')) {
+      // Instance name — navigate to desktop
+      location.hash = `#/fleet/${encodeURIComponent(target)}`;
+    } else if (target) {
+      location.hash = target;
+    } else {
+      location.hash = '#/fleet';
+    }
   }, []);
 
   const refresh = useCallback(async () => {
@@ -100,7 +128,7 @@ function App() {
       try {
         await api.destroyInstance(name);
         addToast(t('toast.destroyed', name), 'success');
-        if (view.page === 'desktop' && view.name === name) navigate(null);
+        if (view.page === 'desktop' && view.name === name) navigate('#/fleet');
       } catch (err) {
         addToast(err.message, 'error');
       }
@@ -124,41 +152,68 @@ function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showCreate]);
+  }, [showCreate, configureName]);
 
   const currentInstance = view.page === 'desktop'
     ? instances.find(i => i.name === view.name)
     : null;
 
-  return html`
-    <${Toolbar}
-      count=${instances.length}
-      onCreateClick=${() => setShowCreate(true)}
-      showBack=${view.page === 'desktop'}
-      onBack=${() => navigate(null)}
-    />
-    ${view.page === 'dashboard' ? html`
-      <${Dashboard}
-        instances=${instances}
-        stats=${stats}
-        loading=${loading}
-        pending=${pending}
-        onStart=${onStart}
-        onStop=${onStop}
-        onDestroy=${onDestroy}
-        onDesktop=${navigate}
-        onConfigure=${(name) => setConfigureName(name)}
-      />
-    ` : html`
+  // Desktop view has its own full-screen layout (no sidebar)
+  if (view.page === 'desktop') {
+    return html`
+      <${Toolbar} />
       <${InstanceDesktop}
         instance=${currentInstance}
         stats=${stats[view.name]}
         pending=${pending[view.name]}
         onStart=${onStart}
         onStop=${onStop}
-        onBack=${() => navigate(null)}
+        onBack=${() => navigate('#/fleet')}
       />
-    `}
+      <${ToastContainer} toasts=${toasts} onDismiss=${removeToast} />
+      <${ConnectionStatus} connected=${connected} />
+    `;
+  }
+
+  // Standard sidebar layout
+  let content;
+  switch (view.page) {
+    case 'models':
+      content = html`<${ModelAssets} addToast=${addToast} />`;
+      break;
+    case 'channels':
+      content = html`<${ChannelAssets} addToast=${addToast} />`;
+      break;
+    case 'image':
+      content = html`<${ImagePage} addToast=${addToast} />`;
+      break;
+    case 'fleet':
+    default:
+      content = html`
+        <${Dashboard}
+          instances=${instances}
+          stats=${stats}
+          loading=${loading}
+          pending=${pending}
+          onStart=${onStart}
+          onStop=${onStop}
+          onDestroy=${onDestroy}
+          onDesktop=${navigate}
+          onConfigure=${(name) => setConfigureName(name)}
+          onCreateClick=${() => setShowCreate(true)}
+        />
+      `;
+      break;
+  }
+
+  return html`
+    <${Toolbar} />
+    <div class="app-layout">
+      <${Sidebar} currentRoute=${view.route} onNavigate=${navigate} />
+      <main class="app-main">
+        ${content}
+      </main>
+    </div>
     ${showCreate && html`
       <${CreateDialog} onClose=${() => setShowCreate(false)} onCreate=${onCreate} />
     `}
