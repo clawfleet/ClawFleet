@@ -10,6 +10,8 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 )
 
+const supervisorConfigPath = "/etc/supervisor/supervisord.conf"
+
 // ConfigureParams holds OpenClaw configuration parameters.
 type ConfigureParams struct {
 	ContainerID  string
@@ -20,8 +22,46 @@ type ConfigureParams struct {
 	ChannelToken string // bot token
 }
 
+type openClawChannelConfig struct {
+	BotToken string `json:"botToken"`
+	Token    string `json:"token"`
+}
+
+// ValidateConfigureParams checks that the requested configuration is internally consistent.
+func ValidateConfigureParams(p ConfigureParams) error {
+	if strings.TrimSpace(p.Provider) == "" {
+		return fmt.Errorf("provider is required")
+	}
+	if strings.TrimSpace(p.APIKey) == "" {
+		return fmt.Errorf("api key is required")
+	}
+
+	hasChannel := strings.TrimSpace(p.Channel) != ""
+	hasChannelToken := strings.TrimSpace(p.ChannelToken) != ""
+
+	switch {
+	case hasChannel && !hasChannelToken:
+		return fmt.Errorf("channel token is required when channel is set")
+	case hasChannelToken && !hasChannel:
+		return fmt.Errorf("channel is required when channel token is set")
+	default:
+		return nil
+	}
+}
+
 // Configure runs openclaw CLI commands inside the container to set up the instance.
 func Configure(cli *docker.Client, p ConfigureParams) error {
+	if err := ValidateConfigureParams(p); err != nil {
+		return err
+	}
+
+	// Reconfigure on a running instance must stop the supervised gateway first.
+	// Otherwise `openclaw onboard` may update gateway config while the old process
+	// is still live, and a subsequent supervisor start can race into a port clash.
+	if err := stopOpenClawIfRunning(cli, p.ContainerID); err != nil {
+		return err
+	}
+
 	// Step 1: onboard with API key (runs as "node" — writes to ~node/.openclaw/)
 	apiKeyFlag := fmt.Sprintf("--%s-api-key", p.Provider)
 	if err := dockerExecAs(cli, p.ContainerID, "node", []string{
@@ -62,9 +102,7 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 	// Step 4: start openclaw gateway via supervisord (runs as "root" — supervisord
 	// socket is owned by root; the gateway process itself runs as "node" per
 	// the [program:openclaw] user=node directive)
-	if err := dockerExecAs(cli, p.ContainerID, "root", []string{
-		"supervisorctl", "start", "openclaw",
-	}); err != nil {
+	if err := dockerExecAs(cli, p.ContainerID, "root", supervisorctlCmd("start", "openclaw")); err != nil {
 		return fmt.Errorf("supervisorctl start: %w", err)
 	}
 
@@ -105,9 +143,7 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 
 		// Step 8: restart gateway to ensure all policy changes take effect.
 		// Hot reload may not pick up rapid successive config changes.
-		if err := dockerExecAs(cli, p.ContainerID, "root", []string{
-			"supervisorctl", "restart", "openclaw",
-		}); err != nil {
+		if err := dockerExecAs(cli, p.ContainerID, "root", supervisorctlCmd("restart", "openclaw")); err != nil {
 			return fmt.Errorf("supervisorctl restart: %w", err)
 		}
 		if err := waitForGateway(cli, p.ContainerID, 30*time.Second); err != nil {
@@ -154,10 +190,7 @@ func ConfigStatus(cli *docker.Client, containerID string) (*ConfigInfo, error) {
 				} `json:"model"`
 			} `json:"defaults"`
 		} `json:"agents"`
-		Channels map[string]struct {
-			BotToken string `json:"botToken"`
-			Token    string `json:"token"`
-		} `json:"channels"`
+		Channels map[string]openClawChannelConfig `json:"channels"`
 	}
 	if err := json.Unmarshal([]byte(out), &cfg); err != nil {
 		return &ConfigInfo{Configured: true}, nil
@@ -193,20 +226,53 @@ func ConfigStatus(cli *docker.Client, containerID string) (*ConfigInfo, error) {
 		}
 	}
 
-	// Find the first channel and its token hint.
-	for name, ch := range cfg.Channels {
+	// Find the first fully configured channel.
+	if name, token := configuredChannel(cfg.Channels); name != "" {
 		info.Channel = name
+		info.ChannelTokenHint = maskLast4(token)
+	}
+
+	return info, nil
+}
+
+func configuredChannel(channels map[string]openClawChannelConfig) (string, string) {
+	for name, ch := range channels {
 		token := ch.BotToken
 		if token == "" {
 			token = ch.Token
 		}
-		if token != "" {
-			info.ChannelTokenHint = maskLast4(token)
+		if token == "" {
+			continue
 		}
-		break
+		return name, token
+	}
+	return "", ""
+}
+
+func supervisorctlCmd(args ...string) []string {
+	cmd := []string{"supervisorctl", "-c", supervisorConfigPath}
+	return append(cmd, args...)
+}
+
+func stopOpenClawIfRunning(cli *docker.Client, containerID string) error {
+	out, err := dockerExecOutputAs(cli, containerID, "root", []string{
+		"bash", "-lc", "supervisorctl -c /etc/supervisor/supervisord.conf status openclaw || true",
+	})
+	if err != nil {
+		return fmt.Errorf("supervisorctl status: %w", err)
 	}
 
-	return info, nil
+	status := strings.TrimSpace(out)
+	if status == "" {
+		return nil
+	}
+	if !strings.Contains(status, "RUNNING") && !strings.Contains(status, "STARTING") {
+		return nil
+	}
+	if err := dockerExecAs(cli, containerID, "root", supervisorctlCmd("stop", "openclaw")); err != nil {
+		return fmt.Errorf("supervisorctl stop: %w", err)
+	}
+	return nil
 }
 
 // dockerExecAs runs a command inside a container as the specified user.

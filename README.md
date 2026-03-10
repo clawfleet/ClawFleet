@@ -133,7 +133,35 @@ clawsandbox list
 
 ### 6. Set up each claw
 
-Each claw needs a one-time configuration via its desktop. Open it from the Dashboard (click **"Desktop"** on an instance card) or via CLI:
+Each claw needs a one-time configuration.
+
+**Option A: Configure from the Dashboard (recommended)**
+
+After you create an instance, click **"Configure"** on its card and fill in:
+
+- your LLM provider
+- your API key
+- an optional model
+- an optional chat channel and bot token
+
+ClawSandbox will run the OpenClaw onboarding steps for you and start the Gateway automatically.
+
+Then click **"Desktop"** on the instance card, open **Chromium** inside the desktop, and navigate to the local URL shown by OpenClaw (for example `http://127.0.0.1:18789/#token=...`) to access the Control UI.
+
+**Option B: Configure from the CLI**
+
+```bash
+clawsandbox configure claw-1 \
+  --provider anthropic \
+  --api-key sk-ant-... \
+  --model claude-sonnet-4-6
+```
+
+Add `--channel telegram --channel-token ...` if you want ClawSandbox to wire up the bot as part of onboarding.
+
+**Option C: Manual inside the desktop**
+
+Open the desktop from the Dashboard or via CLI:
 
 ```bash
 clawsandbox desktop claw-1
@@ -167,6 +195,7 @@ clawsandbox doctor                      # Run preflight checks and get the next 
 clawsandbox create <N>                  # Create N claw instances (run `clawsandbox build` first on a new machine)
 clawsandbox list                        # List all instances and their status
 clawsandbox desktop <name>              # Open an instance's desktop in the browser
+clawsandbox configure <name>            # Configure provider/model/channel for an instance
 clawsandbox start <name|all>            # Start a stopped instance
 clawsandbox stop <name|all>             # Stop a running instance
 clawsandbox restart <name|all>          # Restart an instance (stop + start)

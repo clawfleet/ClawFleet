@@ -32,6 +32,23 @@ func init() {
 func runConfigure(cmd *cobra.Command, args []string) error {
 	name := args[0]
 
+	provider, _ := cmd.Flags().GetString("provider")
+	apiKey, _ := cmd.Flags().GetString("api-key")
+	model, _ := cmd.Flags().GetString("model")
+	channel, _ := cmd.Flags().GetString("channel")
+	channelToken, _ := cmd.Flags().GetString("channel-token")
+
+	params := container.ConfigureParams{
+		Provider:     provider,
+		APIKey:       apiKey,
+		Model:        model,
+		Channel:      channel,
+		ChannelToken: channelToken,
+	}
+	if err := container.ValidateConfigureParams(params); err != nil {
+		return err
+	}
+
 	store, err := state.Load()
 	if err != nil {
 		return err
@@ -59,23 +76,10 @@ func runConfigure(cmd *cobra.Command, args []string) error {
 		_ = store.Save()
 		fmt.Println("done")
 	}
-
-	provider, _ := cmd.Flags().GetString("provider")
-	apiKey, _ := cmd.Flags().GetString("api-key")
-	model, _ := cmd.Flags().GetString("model")
-	channel, _ := cmd.Flags().GetString("channel")
-	channelToken, _ := cmd.Flags().GetString("channel-token")
-
 	fmt.Printf("Configuring %s (this may take up to 30s while the gateway starts)...\n", name)
 
-	if err := container.Configure(cli, container.ConfigureParams{
-		ContainerID:  inst.ContainerID,
-		Provider:     provider,
-		APIKey:       apiKey,
-		Model:        model,
-		Channel:      channel,
-		ChannelToken: channelToken,
-	}); err != nil {
+	params.ContainerID = inst.ContainerID
+	if err := container.Configure(cli, params); err != nil {
 		return fmt.Errorf("configure failed: %w", err)
 	}
 

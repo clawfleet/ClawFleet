@@ -26,8 +26,15 @@ func (s *Server) handleConfigureInstance(w http.ResponseWriter, r *http.Request)
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
-	if req.Provider == "" || req.APIKey == "" {
-		writeError(w, http.StatusBadRequest, "provider and api_key are required")
+	params := container.ConfigureParams{
+		Provider:     req.Provider,
+		APIKey:       req.APIKey,
+		Model:        req.Model,
+		Channel:      req.Channel,
+		ChannelToken: req.ChannelToken,
+	}
+	if err := container.ValidateConfigureParams(params); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -53,14 +60,8 @@ func (s *Server) handleConfigureInstance(w http.ResponseWriter, r *http.Request)
 		_ = store.Save()
 	}
 
-	if err := container.Configure(s.docker, container.ConfigureParams{
-		ContainerID:  inst.ContainerID,
-		Provider:     req.Provider,
-		APIKey:       req.APIKey,
-		Model:        req.Model,
-		Channel:      req.Channel,
-		ChannelToken: req.ChannelToken,
-	}); err != nil {
+	params.ContainerID = inst.ContainerID
+	if err := container.Configure(s.docker, params); err != nil {
 		writeError(w, http.StatusInternalServerError, fmt.Sprintf("configure failed: %v", err))
 		return
 	}

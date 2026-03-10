@@ -133,7 +133,35 @@ clawsandbox list
 
 ### 6. 配置每只龙虾
 
-每只龙虾需要通过其桌面完成一次初始化。可以在仪表盘点击 **「桌面」** 打开，也可以用 CLI：
+每只龙虾都需要做一次初始化配置。
+
+**方式 A：在 Dashboard 中配置（推荐）**
+
+创建实例后，直接点击实例卡片上的 **「配置」**，填写：
+
+- LLM 提供商
+- API Key
+- 可选的模型
+- 可选的聊天频道及 bot token
+
+ClawSandbox 会替你执行 OpenClaw 的 onboarding，并自动启动 Gateway。
+
+完成后点击实例卡片上的 **「桌面」**，在桌面里的 **Chromium 浏览器**访问 OpenClaw 提示的本地地址（例如 `http://127.0.0.1:18789/#token=...`），即可进入控制台。
+
+**方式 B：通过 CLI 配置**
+
+```bash
+clawsandbox configure claw-1 \
+  --provider anthropic \
+  --api-key sk-ant-... \
+  --model claude-sonnet-4-6
+```
+
+如果希望把 Telegram 等 bot 一起配好，再追加 `--channel telegram --channel-token ...`。
+
+**方式 C：在桌面里手动配置**
+
+可以在仪表盘点击 **「桌面」** 打开，也可以用 CLI：
 
 ```bash
 clawsandbox desktop claw-1
@@ -167,6 +195,7 @@ clawsandbox doctor                      # 运行预检并给出下一步建议
 clawsandbox create <N>                  # 创建 N 个龙虾实例（新机器先运行 `clawsandbox build`）
 clawsandbox list                        # 列出所有实例及状态
 clawsandbox desktop <name>              # 在浏览器中打开实例桌面
+clawsandbox configure <name>            # 为实例配置 provider / model / channel
 clawsandbox start <name|all>            # 启动已停止的实例
 clawsandbox stop <name|all>             # 停止运行中的实例
 clawsandbox restart <name|all>          # 重启实例（先停止再启动）

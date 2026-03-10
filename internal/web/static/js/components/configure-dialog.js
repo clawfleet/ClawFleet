@@ -13,6 +13,7 @@ export function ConfigureDialog({ instanceName, onClose, onConfigure }) {
   const [loading, setLoading] = useState(true);
   const [apiKeyHint, setApiKeyHint] = useState('');
   const [channelTokenHint, setChannelTokenHint] = useState('');
+  const [initialChannel, setInitialChannel] = useState('');
 
   useEffect(() => {
     api.getConfigStatus(instanceName).then((status) => {
@@ -22,18 +23,28 @@ export function ConfigureDialog({ instanceName, onClose, onConfigure }) {
           const parts = status.model.split('/');
           setModel(parts.length > 1 ? parts.slice(1).join('/') : status.model);
         }
-        if (status.channel) setChannel(status.channel);
+        if (status.channel) {
+          setChannel(status.channel);
+          setInitialChannel(status.channel);
+        }
         if (status.api_key_hint) setApiKeyHint(status.api_key_hint);
         if (status.channel_token_hint) setChannelTokenHint(status.channel_token_hint);
       }
     }).catch(() => {}).finally(() => setLoading(false));
   }, [instanceName]);
 
+  const channelNeedsToken = !!channel && (!channelTokenHint || channel !== initialChannel) && !channelToken;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setConfiguring(true);
     try {
-      await onConfigure(instanceName, { provider, api_key: apiKey, model, channel, channel_token: channelToken });
+      const payload = { provider, api_key: apiKey, model };
+      if (channel && (channelToken || channel !== initialChannel || !channelTokenHint)) {
+        payload.channel = channel;
+        payload.channel_token = channelToken;
+      }
+      await onConfigure(instanceName, payload);
     } finally {
       setConfiguring(false);
     }
@@ -99,13 +110,14 @@ export function ConfigureDialog({ instanceName, onClose, onConfigure }) {
                     value=${channelToken}
                     onInput=${(e) => setChannelToken(e.target.value)}
                     placeholder=${channelTokenHint || t('configure.channelTokenHint')}
+                    required=${!!channel && (!channelTokenHint || channel !== initialChannel)}
                   />
                 </label>
               `}
             </div>
             <div class="dialog-footer">
               <button type="button" class="btn btn-ghost" onClick=${onClose}>${t('configure.cancel')}</button>
-              <button type="submit" class="btn btn-primary" disabled=${configuring || !apiKey}>
+              <button type="submit" class="btn btn-primary" disabled=${configuring || !apiKey || channelNeedsToken}>
                 ${configuring ? t('configure.configuring') : t('configure.submit')}
               </button>
             </div>

@@ -124,7 +124,7 @@ function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showCreate]);
+  }, [showCreate, configureName]);
 
   const currentInstance = view.page === 'desktop'
     ? instances.find(i => i.name === view.name)
