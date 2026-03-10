@@ -15,12 +15,18 @@ import (
 	"github.com/weiyong1024/clawsandbox/internal/state"
 )
 
+var pullFlag bool
+
 var createCmd = &cobra.Command{
 	Use:     "create <N>",
 	Short:   "Create N isolated OpenClaw instances",
 	Args:    cobra.ExactArgs(1),
-	Example: "  clawsandbox create 3\n  clawsandbox create 1",
+	Example: "  clawsandbox create 3\n  clawsandbox create 1\n  clawsandbox create 3 --pull",
 	RunE:    runCreate,
+}
+
+func init() {
+	createCmd.Flags().BoolVar(&pullFlag, "pull", false, "Pull image from registry if not found locally")
 }
 
 func runCreate(cmd *cobra.Command, args []string) error {
@@ -39,17 +45,21 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Check image exists; attempt auto-pull from GHCR if missing
+	// Check image exists
 	exists, err := container.ImageExists(cli, cfg.ImageRef())
 	if err != nil {
 		return err
 	}
 	if !exists {
-		fmt.Printf("Image %s not found locally, pulling from registry...\n", cfg.ImageRef())
-		if pullErr := container.PullImage(cli, cfg.Image.Name, cfg.Image.Tag, os.Stdout); pullErr != nil {
-			return fmt.Errorf("image %s not found locally and pull failed: %v\nRun 'clawsandbox build' to build it manually", cfg.ImageRef(), pullErr)
+		if pullFlag {
+			fmt.Printf("Image %s not found locally, pulling from registry...\n", cfg.ImageRef())
+			if pullErr := container.PullImage(cli, cfg.Image.Name, cfg.Image.Tag, os.Stdout); pullErr != nil {
+				return fmt.Errorf("pull failed: %v\nRun 'clawsandbox build' to build it manually", pullErr)
+			}
+			fmt.Println("Image pulled successfully.")
+		} else {
+			return fmt.Errorf("Image %s not found. Run 'clawsandbox build' or build via Dashboard.\nUse --pull to pull from the registry instead.", cfg.ImageRef())
 		}
-		fmt.Println("Image pulled successfully.")
 	}
 
 	// Ensure network

@@ -9,7 +9,13 @@ import (
 )
 
 // configureRequest is the JSON body for POST /api/v1/instances/{name}/configure.
+// Supports both asset-based (model_asset_id/channel_asset_id) and direct field configuration.
 type configureRequest struct {
+	// Asset-based configuration
+	ModelAssetID   string `json:"model_asset_id"`
+	ChannelAssetID string `json:"channel_asset_id"`
+
+	// Direct configuration (legacy, still supported)
 	Provider     string `json:"provider"`
 	APIKey       string `json:"api_key"`
 	Model        string `json:"model"`
@@ -26,6 +32,56 @@ func (s *Server) handleConfigureInstance(w http.ResponseWriter, r *http.Request)
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
+
+	// If asset IDs are provided, resolve them to actual config values
+	if req.ModelAssetID != "" {
+		assets, err := s.loadAssets()
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		model := assets.GetModel(req.ModelAssetID)
+		if model == nil {
+			writeError(w, http.StatusBadRequest, "model asset not found")
+			return
+		}
+		if !model.Validated {
+			writeError(w, http.StatusBadRequest, "model asset has not been validated")
+			return
+		}
+
+		req.Provider = model.Provider
+		req.APIKey = model.APIKey
+		req.Model = model.Model
+
+		// Handle channel asset
+		if req.ChannelAssetID != "" {
+			channel := assets.GetChannel(req.ChannelAssetID)
+			if channel == nil {
+				writeError(w, http.StatusBadRequest, "channel asset not found")
+				return
+			}
+			if !channel.Validated {
+				writeError(w, http.StatusBadRequest, "channel asset has not been validated")
+				return
+			}
+			req.Channel = channel.Channel
+			req.ChannelToken = channel.Token
+		}
+
+		// Channel is exclusive — release previous and assign new
+		assets.ReleaseChannelByInstance(name)
+		if req.ChannelAssetID != "" {
+			assets.AssignChannel(req.ChannelAssetID, name)
+		}
+
+		if err := assets.SaveAssets(); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
 	if req.Provider == "" || req.APIKey == "" {
 		writeError(w, http.StatusBadRequest, "provider and api_key are required")
 		return

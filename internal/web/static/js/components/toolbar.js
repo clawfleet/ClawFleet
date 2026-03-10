@@ -6,8 +6,8 @@ const LANGUAGES = [
   { code: 'zh', label: '简体中文' },
 ];
 
-export function Toolbar({ count, onCreateClick, showBack, onBack }) {
-  const { lang, setLang, t } = useLang();
+export function Toolbar() {
+  const { lang, setLang } = useLang();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -25,14 +25,8 @@ export function Toolbar({ count, onCreateClick, showBack, onBack }) {
   return html`
     <header class="toolbar">
       <div class="toolbar-brand">
-        ${showBack
-          ? html`<button class="btn btn-ghost btn-sm" onClick=${onBack}>${t('toolbar.back')}</button>`
-          : html`
-            <span class="toolbar-logo">🦞</span>
-            <h1 class="toolbar-title">ClawSandbox</h1>
-            <span class="toolbar-count">${t('toolbar.instances', count)}</span>
-          `
-        }
+        <span class="toolbar-logo">🦞</span>
+        <h1 class="toolbar-title">ClawSandbox</h1>
       </div>
       <div class="toolbar-right">
         <div class="lang-dropdown" ref=${ref}>
@@ -51,11 +45,6 @@ export function Toolbar({ count, onCreateClick, showBack, onBack }) {
             </div>
           `}
         </div>
-        ${!showBack && html`
-          <button class="btn btn-primary" onClick=${onCreateClick}>
-            ${t('toolbar.create')}
-          </button>
-        `}
       </div>
     </header>
   `;

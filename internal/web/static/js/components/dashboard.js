@@ -13,42 +13,51 @@ function SkeletonCard() {
   `;
 }
 
-export function Dashboard({ instances, stats, loading, pending, onStart, onStop, onDestroy, onDesktop, onConfigure }) {
+export function Dashboard({ instances, stats, loading, pending, onStart, onStop, onDestroy, onDesktop, onConfigure, onCreateClick }) {
   const { t } = useLang();
 
   if (loading) {
     return html`
-      <div class="dashboard-grid">
-        <${SkeletonCard} /><${SkeletonCard} /><${SkeletonCard} />
-      </div>
-    `;
-  }
-
-  if (instances.length === 0) {
-    return html`
-      <div class="dashboard-empty">
-        <div class="dashboard-empty-icon">🦞</div>
-        <h2>${t('dashboard.empty.title')}</h2>
-        <p>${t('dashboard.empty.desc')}</p>
+      <div class="page-content">
+        <div class="dashboard-grid">
+          <${SkeletonCard} /><${SkeletonCard} /><${SkeletonCard} />
+        </div>
       </div>
     `;
   }
 
   return html`
-    <div class="dashboard-grid">
-      ${instances.map(inst => html`
-        <${InstanceCard}
-          key=${inst.name}
-          instance=${inst}
-          stats=${stats[inst.name]}
-          pending=${pending[inst.name]}
-          onStart=${() => onStart(inst.name)}
-          onStop=${() => onStop(inst.name)}
-          onDestroy=${() => onDestroy(inst.name)}
-          onDesktop=${() => onDesktop(inst.name)}
-          onConfigure=${() => onConfigure(inst.name)}
-        />
-      `)}
+    <div class="page-content">
+      <div class="page-header">
+        <h2 class="page-title">${t('sidebar.instances')} <span class="toolbar-count">${t('toolbar.instances', instances.length)}</span></h2>
+        <button class="btn btn-primary" onClick=${onCreateClick}>
+          ${t('toolbar.create')}
+        </button>
+      </div>
+
+      ${instances.length === 0 ? html`
+        <div class="dashboard-empty">
+          <div class="dashboard-empty-icon">🦞</div>
+          <h2>${t('dashboard.empty.title')}</h2>
+          <p>${t('dashboard.empty.desc')}</p>
+        </div>
+      ` : html`
+        <div class="dashboard-grid">
+          ${instances.map(inst => html`
+            <${InstanceCard}
+              key=${inst.name}
+              instance=${inst}
+              stats=${stats[inst.name]}
+              pending=${pending[inst.name]}
+              onStart=${() => onStart(inst.name)}
+              onStop=${() => onStop(inst.name)}
+              onDestroy=${() => onDestroy(inst.name)}
+              onDesktop=${() => onDesktop(inst.name)}
+              onConfigure=${() => onConfigure(inst.name)}
+            />
+          `)}
+        </div>
+      `}
     </div>
   `;
 }

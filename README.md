@@ -51,63 +51,33 @@ make build
 sudo make install
 ```
 
-### 2. Build the Docker image
-
-The first run requires building the sandbox image (~1.4 GB, takes several minutes):
+### 2. Launch Dashboard
 
 ```bash
-clawsandbox build
-```
-
-### 3. Deploy your fleet
-
-**Option A: Web Dashboard (recommended)**
-
-```bash
-# Start the Dashboard
 clawsandbox dashboard serve
+# Open http://localhost:8080
 ```
 
-Open [http://localhost:8080](http://localhost:8080) in your browser. Click **"Create Instances"**, choose a count, and you're done.
+### 3. Build Image
+
+Click **"System → Image"** in the Dashboard and build the sandbox image (~1.4 GB, first build takes several minutes).
+
+### 4. Deploy & Configure
+
+1. **"Assets → Models"** — add your LLM API key and model (validated before saving)
+2. **"Assets → Channels"** — add your bot token, e.g. Telegram Bot (optional, validated before saving)
+3. **"Fleet → Create"** — spin up instances
+4. **"Fleet → Configure"** — assign model and channel configs from your asset pool
 
 ![Dashboard](docs/images/dashboard.jpeg)
 
 The Dashboard provides:
+- **Sidebar navigation** — Assets (Model/Channel config), Fleet (instances), System (image management)
 - Real-time CPU/memory stats for every instance
 - One-click Start / Stop / Destroy actions
 - Click **"Desktop"** on any running instance to open its detail page with an embedded noVNC desktop, live logs, and resource charts
 
 ![Instance Desktop](docs/images/instance-desktop.jpeg)
-
-**Option B: CLI**
-
-```bash
-# Create 3 isolated OpenClaw instances
-clawsandbox create 3
-
-# Check status
-clawsandbox list
-```
-
-### 4. Set up each claw
-
-Each claw needs a one-time configuration via its desktop. Open it from the Dashboard (click **"Desktop"** on an instance card) or via CLI:
-
-```bash
-clawsandbox desktop claw-1
-```
-
-Inside the desktop terminal:
-
-```bash
-# Step 1: Run the setup wizard (configure LLM API key, Telegram bot, etc.)
-openclaw onboard --flow quickstart
-
-# Step 2: Start the Gateway
-openclaw gateway --port 18789
-```
-
-Once the Gateway is running, open **Chromium** on the desktop and navigate to the URL shown in the terminal (e.g. `http://127.0.0.1:18789/#token=...`) to access the OpenClaw Control UI.
 
 ## CLI Reference
 
@@ -121,7 +91,8 @@ clawsandbox dashboard --help    # Show dashboard subcommands
 Quick reference:
 
 ```bash
-clawsandbox create <N>                  # Create N claw instances (auto-pulls image)
+clawsandbox create <N>                  # Create N claw instances (image must be pre-built)
+clawsandbox create <N> --pull           # Create N instances, pull image from registry if missing
 clawsandbox list                        # List all instances and their status
 clawsandbox desktop <name>              # Open an instance's desktop in the browser
 clawsandbox start <name|all>            # Start a stopped instance

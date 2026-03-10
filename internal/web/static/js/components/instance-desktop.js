@@ -22,7 +22,7 @@ export function InstanceDesktop({ instance, stats, pending, onStart, onStop, onB
   return html`
     <div class="instance-desktop">
       <div class="desktop-toolbar">
-        <button class="btn btn-ghost" onClick=${onBack}>${t('toolbar.back')}</button>
+        <button class="btn btn-ghost" onClick=${onBack}>← ${t('sidebar.instances')}</button>
         <div class="desktop-info">
           <span class="desktop-name">${instance.name}</span>
           <span class="status-badge ${isRunning ? 'status-running' : 'status-stopped'}">

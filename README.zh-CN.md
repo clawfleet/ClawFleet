@@ -51,63 +51,33 @@ make build
 sudo make install
 ```
 
-### 2. 构建 Docker 镜像
-
-首次使用需要构建沙箱镜像（约 1.4 GB，需要几分钟）：
+### 2. 启动仪表盘
 
 ```bash
-clawsandbox build
-```
-
-### 3. 部署龙虾军团
-
-**方式 A：Web 仪表盘（推荐）**
-
-```bash
-# 启动仪表盘
 clawsandbox dashboard serve
+# 打开 http://localhost:8080
 ```
 
-在浏览器中打开 [http://localhost:8080](http://localhost:8080)，点击 **「创建实例」**，选择数量即可。
+### 3. 构建镜像
+
+在仪表盘中点击 **「系统 → 镜像管理」**，构建沙箱镜像（约 1.4 GB，首次构建需要几分钟）。
+
+### 4. 部署与配置
+
+1. **「资产管理 → Model 配置」** — 添加 LLM API Key 和模型（保存前自动验证）
+2. **「资产管理 → Channel 配置」** — 添加机器人令牌，如 Telegram Bot（可选，保存前自动验证）
+3. **「实例管理 → 创建实例」** — 创建实例
+4. **「实例管理 → 配置」** — 从资产池选择 Model 和 Channel 配置
 
 ![仪表盘](docs/images/dashboard.jpeg)
 
 仪表盘提供：
+- **侧边栏导航** — 资产管理（Model / Channel 配置）、实例管理、系统（镜像管理）
 - 所有实例的实时 CPU / 内存监控
 - 一键 启动 / 停止 / 销毁 操作
 - 点击实例卡片上的 **「桌面」**，进入详情页，内嵌 noVNC 桌面、实时日志和资源图表
 
 ![实例桌面](docs/images/instance-desktop.jpeg)
-
-**方式 B：CLI**
-
-```bash
-# 创建 3 个隔离的 OpenClaw 实例
-clawsandbox create 3
-
-# 查看状态
-clawsandbox list
-```
-
-### 4. 配置每只龙虾
-
-每只龙虾需要通过其桌面完成一次初始化。可以在仪表盘点击 **「桌面」** 打开，也可以用 CLI：
-
-```bash
-clawsandbox desktop claw-1
-```
-
-在桌面的终端中执行：
-
-```bash
-# 第一步：运行初始化向导（配置 LLM API Key、Telegram Bot 等）
-openclaw onboard --flow quickstart
-
-# 第二步：启动 Gateway
-openclaw gateway --port 18789
-```
-
-Gateway 启动后，在桌面的 **Chromium 浏览器**中访问终端输出的地址（形如 `http://127.0.0.1:18789/#token=...`），即可打开 OpenClaw 控制台。
 
 ## CLI 命令
 
@@ -121,7 +91,8 @@ clawsandbox dashboard --help    # 查看 dashboard 子命令组
 常用命令速查：
 
 ```bash
-clawsandbox create <N>                  # 创建 N 个龙虾实例（自动拉取镜像）
+clawsandbox create <N>                  # 创建 N 个龙虾实例（需先构建镜像）
+clawsandbox create <N> --pull           # 创建 N 个实例，若镜像不存在则从 Registry 拉取
 clawsandbox list                        # 列出所有实例及状态
 clawsandbox desktop <name>              # 在浏览器中打开实例桌面
 clawsandbox start <name|all>            # 启动已停止的实例
