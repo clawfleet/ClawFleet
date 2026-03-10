@@ -44,15 +44,16 @@ Start with one OpenClaw if you only need one assistant. Reach for ClawSandbox wh
 - **A local Docker context that works from the terminal** — `docker version` should succeed before you continue
 - **Go 1.25+ and `make`** — only needed if you are building ClawSandbox from source, as shown below
 - **Enough local resources** — at least 8 GB RAM and 10+ GB free disk; 16 GB RAM is recommended if you want to run multiple claws comfortably
-- **Internet on first run** — a fresh local image build downloads base layers, packages, and browser assets
+- **Internet on first run** — the first image preparation may pull a prebuilt image or build locally, depending on what is available
 
 ## First-Run Expectation
 
 The recommended first-run path today is:
 
-- **Build the local image first** — run `clawsandbox build` before you create anything
-- **Then start the Dashboard or use the CLI** — once the image is local, instance creation takes seconds
-- **Expect the first local build to take time** — on a fresh machine, several minutes is normal
+- **Run `clawsandbox doctor` first** — it tells you whether Docker is reachable and whether the image is already local
+- **Then create from the Dashboard or CLI** — ClawSandbox will prepare the image automatically if it is missing
+- **Use `clawsandbox build` when you want to prebuild** — this is still useful for offline use, customization, or a more predictable first run
+- **Expect the first image preparation to take time** — on a fresh machine, several minutes is normal whether it pulls or builds
 
 If Docker is not running, ClawSandbox will fail early. Start Docker first, then continue.
 
@@ -93,13 +94,15 @@ It tells you:
 - what startup path you are on
 - what to do next
 
-### 4. Build the local Docker image
+### 4. Optional: prebuild the local Docker image
 
-Build the local image before your first create (~4 GB image, takes several minutes on a fresh machine):
+If you want to prebuild ahead of time for offline use, customization, or a more predictable first run, build the local image explicitly (~4 GB image, takes several minutes on a fresh machine):
 
 ```bash
 clawsandbox build
 ```
+
+If you skip this step, the first `create` from the CLI or Dashboard will prepare the image automatically.
 
 ### 5. Deploy your fleet
 
@@ -111,6 +114,8 @@ clawsandbox dashboard serve
 ```
 
 Open [http://localhost:8080](http://localhost:8080) in your browser. Click **"Create Instances"**, choose a count, and you're done.
+
+On a fresh machine, the first create may spend several minutes preparing the image before the instance appears.
 
 ![Dashboard](docs/images/dashboard.jpeg)
 
@@ -130,6 +135,8 @@ clawsandbox create 3
 # Check status
 clawsandbox list
 ```
+
+On a fresh machine, the first `create` may pull the prebuilt image or fall back to a local build automatically.
 
 ### 6. Set up each claw
 
@@ -192,7 +199,7 @@ Quick reference:
 
 ```bash
 clawsandbox doctor                      # Run preflight checks and get the next step
-clawsandbox create <N>                  # Create N claw instances (run `clawsandbox build` first on a new machine)
+clawsandbox create <N>                  # Create N claw instances (auto-prepares the image on first run)
 clawsandbox list                        # List all instances and their status
 clawsandbox desktop <name>              # Open an instance's desktop in the browser
 clawsandbox configure <name>            # Configure provider/model/channel for an instance
@@ -206,7 +213,7 @@ clawsandbox dashboard serve              # Start the Web Dashboard
 clawsandbox dashboard stop               # Stop the Web Dashboard
 clawsandbox dashboard restart            # Restart the Web Dashboard
 clawsandbox dashboard open               # Open the Dashboard in your browser
-clawsandbox build                        # Build the local image for first run, offline use, or customization
+clawsandbox build                        # Prebuild the local image for offline use, customization, or a predictable first run
 clawsandbox config                       # Show current configuration
 clawsandbox version                      # Print version info
 ```

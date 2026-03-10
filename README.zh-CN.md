@@ -44,15 +44,16 @@ OpenClaw 本身已经支持多 agent，甚至支持同机运行多个 Gateway。
 - **终端里的 Docker 可用** — 继续之前先确保 `docker version` 能成功
 - **Go 1.25+ 和 `make`** — 只有按下面方式从源码构建 ClawSandbox 时才需要
 - **足够的本地资源** — 至少 8 GB 内存、10+ GB 可用磁盘；如果要同时跑多只 claw，建议 16 GB 内存
-- **首次运行需要联网** — 在全新机器上，本地构建镜像会下载基础层、依赖和浏览器资源
+- **首次运行需要联网** — 第一次准备镜像时，可能会拉取预构建镜像，也可能会回退到本地构建
 
 ## 首次启动预期
 
 当前推荐的首次启动路径是：
 
-- **先在本地构建镜像** — 在创建任何实例之前先运行 `clawsandbox build`
-- **再启动 Dashboard 或使用 CLI** — 一旦本地镜像准备好，创建实例通常就是秒级
-- **第一次本地构建不会很快** — 一台全新的机器通常需要几分钟
+- **先运行 `clawsandbox doctor`** — 它会告诉你 Docker 是否可达，以及镜像是否已经在本地
+- **然后直接用 Dashboard 或 CLI 创建实例** — 如果镜像缺失，ClawSandbox 会自动准备
+- **如果你希望先准备好镜像，也可以显式运行 `clawsandbox build`** — 这对离线、自定义或更可预期的首次启动更有用
+- **第一次准备镜像不会很快** — 无论是拉取还是本地构建，全新机器通常都需要几分钟
 
 如果 Docker 没有启动，ClawSandbox 会直接报错。先启动 Docker，再继续。
 
@@ -93,13 +94,15 @@ clawsandbox doctor
 - 当前应该走哪条启动路径
 - 下一步该执行什么
 
-### 4. 先在本地构建 Docker 镜像
+### 4. 可选：提前在本地构建 Docker 镜像
 
-第一次创建实例前，请先在本地构建镜像（镜像约 4 GB，全新机器通常需要几分钟）：
+如果你想为了离线使用、自定义，或让首次运行更可预期，可以先显式构建本地镜像（镜像约 4 GB，全新机器通常需要几分钟）：
 
 ```bash
 clawsandbox build
 ```
+
+如果跳过这一步，第一次通过 CLI 或 Dashboard 创建实例时，也会自动准备镜像。
 
 ### 5. 部署龙虾军团
 
@@ -111,6 +114,8 @@ clawsandbox dashboard serve
 ```
 
 在浏览器中打开 [http://localhost:8080](http://localhost:8080)，点击 **「创建实例」**，选择数量即可。
+
+在一台全新的机器上，第一次创建时可能会先花几分钟准备镜像，之后实例才会出现。
 
 ![仪表盘](docs/images/dashboard.jpeg)
 
@@ -130,6 +135,8 @@ clawsandbox create 3
 # 查看状态
 clawsandbox list
 ```
+
+在全新机器上，第一次 `create` 可能会先自动拉取预构建镜像，拉不到时再回退到本地构建。
 
 ### 6. 配置每只龙虾
 
@@ -192,7 +199,7 @@ clawsandbox dashboard --help    # 查看 dashboard 子命令组
 
 ```bash
 clawsandbox doctor                      # 运行预检并给出下一步建议
-clawsandbox create <N>                  # 创建 N 个龙虾实例（新机器先运行 `clawsandbox build`）
+clawsandbox create <N>                  # 创建 N 个龙虾实例（首次运行会自动准备镜像）
 clawsandbox list                        # 列出所有实例及状态
 clawsandbox desktop <name>              # 在浏览器中打开实例桌面
 clawsandbox configure <name>            # 为实例配置 provider / model / channel
@@ -206,7 +213,7 @@ clawsandbox dashboard serve              # 启动 Web 仪表盘
 clawsandbox dashboard stop               # 停止 Web 仪表盘
 clawsandbox dashboard restart            # 重启 Web 仪表盘
 clawsandbox dashboard open               # 在浏览器中打开仪表盘
-clawsandbox build                        # 为首次运行、离线或自定义场景构建本地镜像
+clawsandbox build                        # 为离线、自定义或更可预期的首次运行提前构建本地镜像
 clawsandbox config                       # 显示当前配置
 clawsandbox version                      # 查看版本信息
 ```
