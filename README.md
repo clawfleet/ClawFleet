@@ -79,6 +79,15 @@ The Dashboard provides:
 
 ![Instance Desktop](docs/images/instance-desktop.jpeg)
 
+## Documentation
+
+See the **[Wiki](https://github.com/weiyong1024/ClawSandbox/wiki)** for full documentation, including:
+- [Getting Started](https://github.com/weiyong1024/ClawSandbox/wiki/Getting-Started) — prerequisites, install, first instance
+- [Dashboard Guide](https://github.com/weiyong1024/ClawSandbox/wiki/Dashboard-Guide) — sidebar navigation, asset management, fleet management
+- LLM Provider guides — [Anthropic](https://github.com/weiyong1024/ClawSandbox/wiki/Provider-Anthropic) | [OpenAI](https://github.com/weiyong1024/ClawSandbox/wiki/Provider-OpenAI) | [Google](https://github.com/weiyong1024/ClawSandbox/wiki/Provider-Google) | [DeepSeek](https://github.com/weiyong1024/ClawSandbox/wiki/Provider-DeepSeek)
+- Channel guides — [Telegram](https://github.com/weiyong1024/ClawSandbox/wiki/Channel-Telegram) | [Discord](https://github.com/weiyong1024/ClawSandbox/wiki/Channel-Discord) | [Slack](https://github.com/weiyong1024/ClawSandbox/wiki/Channel-Slack) | [Lark](https://github.com/weiyong1024/ClawSandbox/wiki/Channel-Lark)
+- [CLI Reference](https://github.com/weiyong1024/ClawSandbox/wiki/CLI-Reference) | [FAQ](https://github.com/weiyong1024/ClawSandbox/wiki/FAQ)
+
 ## CLI Reference
 
 Every command supports `--help` for detailed usage and examples:

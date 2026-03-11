@@ -62,3 +62,56 @@ All design decisions, project structure, and code implementation must follow bes
 ### Simplicity & Minimal Surface
 - Don't add abstractions, flags, or config options for hypothetical future needs. Solve the current problem directly.
 - Prefer calling existing CLI tools (`docker exec` + `openclaw` CLI) over writing config files directly — this keeps the integration resilient to upstream format changes.
+
+## Wiki Documentation
+
+The project wiki lives in a separate repo (`git@github.com:weiyong1024/ClawSandbox.wiki.git`) and is browsable at `https://github.com/weiyong1024/ClawSandbox/wiki`. It is the primary documentation hub beyond the README.
+
+### Wiki structure
+
+| File | Purpose |
+|------|---------|
+| `_Sidebar.md` | Navigation sidebar shown on every page |
+| `_Footer.md` | Footer with repo link |
+| `Home.md` | Landing page — value prop, quickstart roadmap, page index |
+| `Getting-Started.md` | Prerequisites, install, first instance end-to-end |
+| `Dashboard-Guide.md` | Sidebar navigation, asset management, fleet management, image management |
+| `CLI-Reference.md` | All CLI commands with descriptions and examples |
+| `FAQ.md` | Common issues grouped by install / config / resource / operations |
+| `Provider-{Anthropic,OpenAI,Google,DeepSeek}.md` | LLM provider guides (one per provider) |
+| `Channel-{Telegram,Discord,Slack,Lark}.md` | Messaging channel guides (one per channel) |
+
+### Content conventions
+
+- **Provider pages** follow a consistent template: Overview → Get API Key (step-by-step) → Add in Dashboard → Assign to Instance → Pricing Notes → Troubleshooting.
+- **Channel pages** follow: Overview → Create Bot (step-by-step) → Add in Dashboard → Assign to Instance → Test → Notes → Troubleshooting.
+- Key facts to keep consistent across pages:
+  - **Models are shared** — multiple instances can use the same model config simultaneously.
+  - **Channels are exclusive** — each channel can only be assigned to one instance at a time.
+  - **Validation required** — must click "Test" and see validation pass before saving.
+  - **Lark is different** — uses App ID + App Secret, not a single token.
+  - **Auto-configuration** — ClawSandbox sets DM/group policies to "open" and allows all senders automatically.
+- Preset models are defined in `internal/web/static/js/components/model-asset-dialog.js` (`MODEL_PRESETS`). When models change there, update the wiki provider pages and `Dashboard-Guide.md`.
+- Validation logic is in `internal/web/validate.go`. If validation endpoints change, update the corresponding channel/provider troubleshooting sections.
+
+### When to update the wiki
+
+**You must update the wiki whenever a code change affects user-facing behavior.** Specifically:
+
+- **New or removed CLI command** → update `CLI-Reference.md`, and `Getting-Started.md` / `FAQ.md` if relevant.
+- **New LLM provider** → create `Provider-<Name>.md` using the existing template, add to `_Sidebar.md`, update `Home.md` page index and `Dashboard-Guide.md` preset table.
+- **New messaging channel** → create `Channel-<Name>.md` using the existing template, add to `_Sidebar.md`, update `Home.md` page index.
+- **Dashboard UI changes** (new sections, renamed labels, changed workflows) → update `Dashboard-Guide.md` and `Getting-Started.md`.
+- **Model preset changes** → update `Dashboard-Guide.md` preset table and the relevant `Provider-*.md` page.
+- **README wiki links** — both `README.md` and `README.zh-CN.md` have a "Documentation" section linking to wiki pages. Update these links if wiki page names change.
+
+### How to edit the wiki
+
+```bash
+git clone git@github.com:weiyong1024/ClawSandbox.wiki.git /tmp/ClawSandbox.wiki
+cd /tmp/ClawSandbox.wiki
+# Edit files...
+git add . && git commit -m "describe the change" && git push
+```
+
+The wiki repo uses `master` as its default branch.

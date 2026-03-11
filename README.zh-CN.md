@@ -79,6 +79,15 @@ clawsandbox dashboard serve
 
 ![实例桌面](docs/images/instance-desktop.jpeg)
 
+## 文档
+
+完整文档请参阅 **[Wiki](https://github.com/weiyong1024/ClawSandbox/wiki)**，包括：
+- [快速开始](https://github.com/weiyong1024/ClawSandbox/wiki/Getting-Started) — 前置要求、安装、第一个实例
+- [仪表盘指南](https://github.com/weiyong1024/ClawSandbox/wiki/Dashboard-Guide) — 侧边栏导航、资产管理、实例管理
+- LLM 提供商指南 — [Anthropic](https://github.com/weiyong1024/ClawSandbox/wiki/Provider-Anthropic) | [OpenAI](https://github.com/weiyong1024/ClawSandbox/wiki/Provider-OpenAI) | [Google](https://github.com/weiyong1024/ClawSandbox/wiki/Provider-Google) | [DeepSeek](https://github.com/weiyong1024/ClawSandbox/wiki/Provider-DeepSeek)
+- 频道指南 — [Telegram](https://github.com/weiyong1024/ClawSandbox/wiki/Channel-Telegram) | [Discord](https://github.com/weiyong1024/ClawSandbox/wiki/Channel-Discord) | [Slack](https://github.com/weiyong1024/ClawSandbox/wiki/Channel-Slack) | [Lark](https://github.com/weiyong1024/ClawSandbox/wiki/Channel-Lark)
+- [CLI 参考](https://github.com/weiyong1024/ClawSandbox/wiki/CLI-Reference) | [常见问题](https://github.com/weiyong1024/ClawSandbox/wiki/FAQ)
+
 ## CLI 命令
 
 任何命令都可以加 `--help` 查看详细用法和示例：
