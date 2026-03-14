@@ -158,6 +158,8 @@ make reset
 
 欢迎提 Issue 或 PR 参与贡献。
 
+使用中如果遇到任何问题，欢迎联系我咨询：weiyong1024@gmail.com
+
 ## License
 
 MIT

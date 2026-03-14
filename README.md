@@ -158,6 +158,8 @@ Actively developed. Both CLI and Web Dashboard are functional.
 
 Contributions and feedback welcome — please open an issue or PR.
 
+If you run into any problems, feel free to reach out: weiyong1024@gmail.com
+
 ## License
 
 MIT
