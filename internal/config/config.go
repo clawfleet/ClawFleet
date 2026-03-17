@@ -7,19 +7,19 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/weiyong1024/clawsandbox/internal/version"
+	"github.com/weiyong1024/clawfleet/internal/version"
 )
 
 const (
-	DefaultImageName = "ghcr.io/weiyong1024/clawsandbox"
+	DefaultImageName = "ghcr.io/weiyong1024/clawfleet"
 	DefaultNoVNCBase    = 6901
 	DefaultGatewayBase  = 18789
 	DefaultMemoryLimit  = "4g"
 	DefaultCPULimit     = 2.0
 	DefaultNamingPrefix = "claw"
 
-	NetworkName  = "clawsandbox-net"
-	LabelManaged = "clawsandbox.managed"
+	NetworkName  = "clawfleet-net"
+	LabelManaged = "clawfleet.managed"
 )
 
 type Config struct {
@@ -88,7 +88,7 @@ func DataDir() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("getting home dir: %w", err)
 	}
-	return filepath.Join(home, ".clawsandbox"), nil
+	return filepath.Join(home, ".clawfleet"), nil
 }
 
 func configPath() (string, error) {

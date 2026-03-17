@@ -5,9 +5,11 @@ import (
 
 	docker "github.com/fsouza/go-dockerclient"
 
-	"github.com/weiyong1024/clawsandbox/internal/config"
+	"github.com/weiyong1024/clawfleet/internal/config"
 )
 
+// EnsureNetwork creates the "clawfleet-net" container network if it does not
+// already exist.
 func EnsureNetwork(cli *docker.Client) error {
 	networks, err := cli.ListNetworks()
 	if err != nil {
