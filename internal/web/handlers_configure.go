@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/weiyong1024/clawsandbox/internal/container"
+	"github.com/weiyong1024/clawsandbox/internal/state"
 )
 
 // configureRequest is the JSON body for POST /api/v1/instances/{name}/configure.
@@ -17,13 +18,14 @@ type configureRequest struct {
 	CharacterAssetID string `json:"character_asset_id"`
 
 	// Direct configuration (legacy, still supported)
-	Provider     string `json:"provider"`
-	APIKey       string `json:"api_key"`
-	Model        string `json:"model"`
-	Channel      string `json:"channel"`
-	ChannelToken string `json:"channel_token"`
-	AppID        string `json:"app_id"`
-	AppSecret    string `json:"app_secret"`
+	Provider        string `json:"provider"`
+	APIKey          string `json:"api_key"`
+	Model           string `json:"model"`
+	Channel         string `json:"channel"`
+	ChannelToken    string `json:"channel_token"`
+	ChannelAppToken string `json:"channel_app_token"`
+	AppID           string `json:"app_id"`
+	AppSecret       string `json:"app_secret"`
 }
 
 // handleConfigureInstance configures an OpenClaw instance via docker exec.
@@ -36,6 +38,7 @@ func (s *Server) handleConfigureInstance(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	var assetsStore *state.AssetStore
 	if req.ModelAssetID != "" {
 		// Standard mode with asset IDs: resolve them to actual config values.
 		assets, err := s.loadAssets()
@@ -71,25 +74,28 @@ func (s *Server) handleConfigureInstance(w http.ResponseWriter, r *http.Request)
 			}
 			req.Channel = channel.Channel
 			req.ChannelToken = channel.Token
+			req.ChannelAppToken = channel.AppToken
 			req.AppID = channel.AppID
 			req.AppSecret = channel.AppSecret
 		}
-
-		// Channel is exclusive — release previous and assign new
-		assets.ReleaseChannelByInstance(name)
-		if req.ChannelAssetID != "" {
-			assets.AssignChannel(req.ChannelAssetID, name)
-		}
-
-		if err := assets.SaveAssets(); err != nil {
-			writeError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+		assetsStore = assets
 	}
 
 	if req.Provider == "" || req.APIKey == "" {
 		writeError(w, http.StatusBadRequest, "provider and api_key are required")
 		return
+	}
+	if req.Channel != "" {
+		if err := ValidateChannelCredentials(
+			req.Channel,
+			req.ChannelToken,
+			req.ChannelAppToken,
+			req.AppID,
+			req.AppSecret,
+		); err != nil {
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
 
 	store, err := s.loadStore()
@@ -142,16 +148,17 @@ func (s *Server) handleConfigureInstance(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := container.Configure(s.docker, container.ConfigureParams{
-		ContainerID:  inst.ContainerID,
-		Provider:     req.Provider,
-		APIKey:       req.APIKey,
-		Model:        req.Model,
-		Channel:      req.Channel,
-		ChannelToken: req.ChannelToken,
-		AppID:        req.AppID,
-		AppSecret:    req.AppSecret,
-		BotName:      botName,
-		Soul:         soul,
+		ContainerID:     inst.ContainerID,
+		Provider:        req.Provider,
+		APIKey:          req.APIKey,
+		Model:           req.Model,
+		Channel:         req.Channel,
+		ChannelToken:    req.ChannelToken,
+		ChannelAppToken: req.ChannelAppToken,
+		AppID:           req.AppID,
+		AppSecret:       req.AppSecret,
+		BotName:         botName,
+		Soul:            soul,
 	}); err != nil {
 		writeError(w, http.StatusInternalServerError, fmt.Sprintf("configure failed: %v", err))
 		return
@@ -160,6 +167,17 @@ func (s *Server) handleConfigureInstance(w http.ResponseWriter, r *http.Request)
 	// Persist which asset IDs were used so the card and dialog can show them.
 	store.SetConfig(name, req.ModelAssetID, req.ChannelAssetID, req.CharacterAssetID)
 	_ = store.Save()
+
+	if assetsStore != nil {
+		assetsStore.ReleaseChannelByInstance(name)
+		if req.ChannelAssetID != "" {
+			assetsStore.AssignChannel(req.ChannelAssetID, name)
+		}
+		if err := assetsStore.SaveAssets(); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"data": map[string]string{

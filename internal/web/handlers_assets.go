@@ -187,6 +187,7 @@ type createChannelRequest struct {
 	Name      string `json:"name"`
 	Channel   string `json:"channel"`
 	Token     string `json:"token"`
+	AppToken  string `json:"app_token"`
 	AppID     string `json:"app_id"`
 	AppSecret string `json:"app_secret"`
 }
@@ -197,40 +198,18 @@ func (s *Server) handleCreateChannelAsset(w http.ResponseWriter, r *http.Request
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
-	if req.Channel == "" {
-		writeError(w, http.StatusBadRequest, "channel is required")
-		return
-	}
-	if req.Channel == "lark" {
-		if req.AppID == "" || req.AppSecret == "" {
-			writeError(w, http.StatusBadRequest, "app_id and app_secret are required for Lark")
-			return
-		}
-	} else if req.Token == "" {
-		writeError(w, http.StatusBadRequest, "token is required")
-		return
-	}
-
 	store, err := s.loadAssets()
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	name := req.Name
-	if name == "" {
-		name = fmt.Sprintf("%s Bot", channelDisplayName(req.Channel))
+	asset, err := buildChannelAsset(nil, req)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
 	}
-
-	asset := &state.ChannelAsset{
-		ID:        generateID(),
-		Name:      name,
-		Channel:   req.Channel,
-		Token:     req.Token,
-		AppID:     req.AppID,
-		AppSecret: req.AppSecret,
-		Validated: true,
-	}
+	asset.ID = generateID()
 
 	store.AddChannel(asset)
 	if err := store.SaveAssets(); err != nil {
@@ -262,24 +241,13 @@ func (s *Server) handleUpdateChannelAsset(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if req.Name != "" {
-		existing.Name = req.Name
+	next, err := buildChannelAsset(existing, req)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
 	}
-	if req.Channel != "" {
-		existing.Channel = req.Channel
-	}
-	if req.Token != "" {
-		existing.Token = req.Token
-	}
-	if req.AppID != "" {
-		existing.AppID = req.AppID
-	}
-	if req.AppSecret != "" {
-		existing.AppSecret = req.AppSecret
-	}
-	existing.Validated = true
 
-	if !store.UpdateChannel(existing) {
+	if !store.UpdateChannel(next) {
 		writeError(w, http.StatusNotFound, "channel asset not found")
 		return
 	}
@@ -288,7 +256,7 @@ func (s *Server) handleUpdateChannelAsset(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]any{"data": existing})
+	writeJSON(w, http.StatusOK, map[string]any{"data": next})
 }
 
 func (s *Server) handleDeleteChannelAsset(w http.ResponseWriter, r *http.Request) {
@@ -315,6 +283,7 @@ func (s *Server) handleDeleteChannelAsset(w http.ResponseWriter, r *http.Request
 type testChannelRequest struct {
 	Channel   string `json:"channel"`
 	Token     string `json:"token"`
+	AppToken  string `json:"app_token"`
 	AppID     string `json:"app_id"`
 	AppSecret string `json:"app_secret"`
 }
@@ -326,7 +295,7 @@ func (s *Server) handleTestChannelAsset(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := ValidateChannelToken(req.Channel, req.Token, req.AppID, req.AppSecret)
+	err := ValidateChannelToken(req.Channel, req.Token, req.AppToken, req.AppID, req.AppSecret)
 	if err != nil {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"data": map[string]any{"valid": false, "error": err.Error()},
@@ -486,4 +455,73 @@ func channelDisplayName(channel string) string {
 	default:
 		return channel
 	}
+}
+
+func buildChannelAsset(existing *state.ChannelAsset, req createChannelRequest) (*state.ChannelAsset, error) {
+	asset := &state.ChannelAsset{}
+	if existing != nil {
+		*asset = *existing
+	}
+
+	channelChanged := existing != nil && req.Channel != "" && req.Channel != existing.Channel
+	if existing == nil || channelChanged {
+		asset.Token = ""
+		asset.AppToken = ""
+		asset.AppID = ""
+		asset.AppSecret = ""
+	}
+
+	if req.Name != "" {
+		asset.Name = req.Name
+	}
+	if req.Channel != "" {
+		asset.Channel = req.Channel
+	}
+	if asset.Channel == "" {
+		return nil, fmt.Errorf("channel is required")
+	}
+
+	if req.Token != "" || existing == nil || channelChanged {
+		asset.Token = req.Token
+	}
+	if req.AppToken != "" || existing == nil || channelChanged {
+		asset.AppToken = req.AppToken
+	}
+	if req.AppID != "" || existing == nil || channelChanged {
+		asset.AppID = req.AppID
+	}
+	if req.AppSecret != "" || existing == nil || channelChanged {
+		asset.AppSecret = req.AppSecret
+	}
+
+	switch asset.Channel {
+	case "telegram", "discord":
+		asset.AppToken = ""
+		asset.AppID = ""
+		asset.AppSecret = ""
+	case "slack":
+		asset.AppID = ""
+		asset.AppSecret = ""
+	case "lark":
+		asset.Token = ""
+		asset.AppToken = ""
+	default:
+		return nil, fmt.Errorf("unsupported channel: %s", asset.Channel)
+	}
+
+	if err := ValidateChannelCredentials(
+		asset.Channel,
+		asset.Token,
+		asset.AppToken,
+		asset.AppID,
+		asset.AppSecret,
+	); err != nil {
+		return nil, err
+	}
+
+	if asset.Name == "" {
+		asset.Name = fmt.Sprintf("%s Bot", channelDisplayName(asset.Channel))
+	}
+	asset.Validated = true
+	return asset, nil
 }

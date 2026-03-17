@@ -89,7 +89,7 @@ Think of ClawSandbox as **your AI company**. Assets are the tools and resources 
 
 ![Characters](docs/images/assets-characters.png)
 
-**Assets → Channels** — connect messaging platforms (Telegram, Discord, Slack, etc.). These are the "workstations" where your employees serve customers. Optional; validated before saving.
+**Assets → Channels** — connect messaging platforms (Telegram, Discord, Slack, etc.). These are the "workstations" where your employees serve customers. Optional; validated before saving. Slack follows OpenClaw Socket Mode and uses both a Bot Token and an App Token.
 
 ![Channels](docs/images/assets-channels.png)
 
@@ -158,6 +158,7 @@ Quick reference:
 ```bash
 clawsandbox create <N>                  # Create N claw instances (image must be pre-built)
 clawsandbox create <N> --pull           # Create N instances, pull image from registry if missing
+clawsandbox configure <name>            # Configure an instance with a model and optional channel credentials
 clawsandbox list                        # List all instances and their status
 clawsandbox desktop <name>              # Open an instance's desktop in the browser
 clawsandbox start <name|all>            # Start a stopped instance

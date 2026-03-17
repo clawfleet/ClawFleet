@@ -9,6 +9,7 @@ export function ChannelAssetDialog({ channel, onClose, onSave, addToast }) {
   const [name, setName] = useState(channel?.name || '');
   const [channelType, setChannelType] = useState(channel?.channel || 'telegram');
   const [token, setToken] = useState(channel?.token || '');
+  const [appToken, setAppToken] = useState(channel?.app_token || '');
   const [appID, setAppID] = useState(channel?.app_id || '');
   const [appSecret, setAppSecret] = useState(channel?.app_secret || '');
   const [saving, setSaving] = useState(false);
@@ -16,6 +17,7 @@ export function ChannelAssetDialog({ channel, onClose, onSave, addToast }) {
   const [validated, setValidated] = useState(isEdit && channel?.validated);
 
   const isLark = channelType === 'lark';
+  const isSlack = channelType === 'slack';
 
   const handleTest = async () => {
     setTesting(true);
@@ -23,6 +25,7 @@ export function ChannelAssetDialog({ channel, onClose, onSave, addToast }) {
       const result = await api.testChannelAsset({
         channel: channelType,
         token: isLark ? '' : token,
+        app_token: isSlack ? appToken : '',
         app_id: isLark ? appID : '',
         app_secret: isLark ? appSecret : '',
       });
@@ -54,6 +57,7 @@ export function ChannelAssetDialog({ channel, onClose, onSave, addToast }) {
         name,
         channel: channelType,
         token: isLark ? '' : token,
+        app_token: isSlack ? appToken : '',
         app_id: isLark ? appID : '',
         app_secret: isLark ? appSecret : '',
       };
@@ -71,7 +75,7 @@ export function ChannelAssetDialog({ channel, onClose, onSave, addToast }) {
     }
   };
 
-  const canTest = isLark ? (appID && appSecret) : !!token;
+  const canTest = isLark ? (appID && appSecret) : isSlack ? (token && appToken) : !!token;
 
   return html`
     <div class="dialog-overlay" onClick=${onClose}>
@@ -99,22 +103,41 @@ export function ChannelAssetDialog({ channel, onClose, onSave, addToast }) {
               </select>
             </label>
 
+            ${isSlack && html`
+              <p class="form-hint">${t('assets.slackSocketModeHint')}</p>
+            `}
+
             ${isLark ? html`
               <label class="form-label">
-                App ID
+                ${t('assets.appID')}
                 <input type="text" class="form-input" value=${appID}
                   onInput=${(e) => { setAppID(e.target.value); setValidated(false); }}
                   required />
               </label>
               <label class="form-label">
-                App Secret
+                ${t('assets.appSecret')}
                 <input type="password" class="form-input" value=${appSecret}
                   onInput=${(e) => { setAppSecret(e.target.value); setValidated(false); }}
                   required />
               </label>
+            ` : isSlack ? html`
+              <label class="form-label">
+                ${t('assets.botToken')}
+                <input type="password" class="form-input" value=${token}
+                  onInput=${(e) => { setToken(e.target.value); setValidated(false); }}
+                  placeholder=${t('assets.slackBotTokenHint')}
+                  required autofocus />
+              </label>
+              <label class="form-label">
+                ${t('assets.appToken')}
+                <input type="password" class="form-input" value=${appToken}
+                  onInput=${(e) => { setAppToken(e.target.value); setValidated(false); }}
+                  placeholder=${t('assets.slackAppTokenHint')}
+                  required />
+              </label>
             ` : html`
               <label class="form-label">
-                Bot Token
+                ${t('assets.botToken')}
                 <input type="password" class="form-input" value=${token}
                   onInput=${(e) => { setToken(e.target.value); setValidated(false); }}
                   required autofocus />

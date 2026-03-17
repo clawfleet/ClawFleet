@@ -81,15 +81,44 @@ func doValidationRequest(req *http.Request, provider string) error {
 	return fmt.Errorf("%s returned HTTP %d: %s", provider, resp.StatusCode, string(body))
 }
 
-// ValidateChannelToken validates a channel bot token.
-func ValidateChannelToken(channel, token, appID, appSecret string) error {
+// ValidateChannelCredentials checks whether the required credentials for a
+// channel are present before attempting live validation or configuration.
+func ValidateChannelCredentials(channel, token, appToken, appID, appSecret string) error {
+	switch channel {
+	case "telegram", "discord":
+		if token == "" {
+			return fmt.Errorf("token is required")
+		}
+	case "slack":
+		if token == "" {
+			return fmt.Errorf("Slack bot token is required")
+		}
+		if appToken == "" {
+			return fmt.Errorf("Slack app token is required")
+		}
+	case "lark":
+		if appID == "" || appSecret == "" {
+			return fmt.Errorf("app_id and app_secret are required for Lark")
+		}
+	default:
+		return fmt.Errorf("unsupported channel: %s", channel)
+	}
+	return nil
+}
+
+// ValidateChannelToken validates a channel's messaging credentials.
+func ValidateChannelToken(channel, token, appToken, appID, appSecret string) error {
+	if err := ValidateChannelCredentials(channel, token, appToken, appID, appSecret); err != nil {
+		return err
+	}
+
 	switch channel {
 	case "telegram":
 		return validateTelegram(token)
 	case "discord":
 		return validateDiscord(token)
 	case "slack":
-		return validateSlack(token)
+		return validateSlack(token, appToken)
 	case "lark":
 		return validateLark(appID, appSecret)
 	default:
@@ -188,29 +217,70 @@ func resolveSlackBotName(token string) string {
 	return result.User
 }
 
-func validateSlack(token string) error {
+type slackValidationResult struct {
+	OK    bool   `json:"ok"`
+	Error string `json:"error"`
+}
+
+func validateSlack(token, appToken string) error {
+	if err := validateSlackBotToken(token); err != nil {
+		return err
+	}
+	return validateSlackAppToken(appToken)
+}
+
+func validateSlackBotToken(token string) error {
 	req, err := http.NewRequest("POST", "https://slack.com/api/auth.test", nil)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
+	result, err := doSlackValidationRequest(req)
+	if err != nil {
+		return err
+	}
+	if !result.OK {
+		return fmt.Errorf("invalid Slack bot token: %s", result.Error)
+	}
+	return nil
+}
+
+func validateSlackAppToken(appToken string) error {
+	req, err := http.NewRequest("POST", "https://slack.com/api/apps.connections.open", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+appToken)
+	result, err := doSlackValidationRequest(req)
+	if err != nil {
+		return err
+	}
+	if !result.OK {
+		return fmt.Errorf("invalid Slack app token or Socket Mode is not enabled: %s", result.Error)
+	}
+	return nil
+}
+
+func doSlackValidationRequest(req *http.Request) (*slackValidationResult, error) {
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("Slack API request failed: %w", err)
+		return nil, fmt.Errorf("Slack API request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	var result struct {
-		OK    bool   `json:"ok"`
-		Error string `json:"error"`
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	if err != nil {
+		return nil, fmt.Errorf("reading Slack response: %w", err)
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return fmt.Errorf("failed to parse Slack response: %w", err)
+
+	var result slackValidationResult
+	if err := json.Unmarshal(body, &result); err == nil {
+		return &result, nil
 	}
-	if !result.OK {
-		return fmt.Errorf("invalid Slack token: %s", result.Error)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Slack returned HTTP %d: %s", resp.StatusCode, string(body))
 	}
-	return nil
+	return nil, fmt.Errorf("failed to parse Slack response")
 }
 
 func validateLark(appID, appSecret string) error {

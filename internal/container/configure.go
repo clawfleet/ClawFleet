@@ -12,16 +12,23 @@ import (
 
 // ConfigureParams holds OpenClaw configuration parameters.
 type ConfigureParams struct {
-	ContainerID  string
-	Provider     string // e.g. "anthropic", "openai"
-	APIKey       string
-	Model        string // e.g. "claude-sonnet-4-6"
-	Channel      string // e.g. "telegram", "lark"
-	ChannelToken string // bot token (Telegram, Discord, Slack)
-	AppID        string // Lark/Feishu App ID
-	AppSecret    string // Lark/Feishu App Secret
-	BotName      string // bot display name for text @mention detection
-	Soul         *SoulParams // optional character to inject before gateway starts
+	ContainerID     string
+	Provider        string // e.g. "anthropic", "openai"
+	APIKey          string
+	Model           string      // e.g. "claude-sonnet-4-6"
+	Channel         string      // e.g. "telegram", "lark"
+	ChannelToken    string      // bot token (Telegram, Discord, Slack)
+	ChannelAppToken string      // Slack app token for Socket Mode
+	AppID           string      // Lark/Feishu App ID
+	AppSecret       string      // Lark/Feishu App Secret
+	BotName         string      // bot display name for text @mention detection
+	Soul            *SoulParams // optional character to inject before gateway starts
+}
+
+type configSetStep struct {
+	path       string
+	value      string
+	strictJSON bool
 }
 
 // openclawChannelName maps ClawSandbox channel names to OpenClaw plugin IDs.
@@ -32,6 +39,55 @@ func openclawChannelName(channel string) string {
 		return "feishu"
 	}
 	return channel
+}
+
+func applyConfigSteps(cli *docker.Client, containerID, user string, steps []configSetStep) error {
+	for _, step := range steps {
+		args := []string{"openclaw", "config", "set", step.path, step.value}
+		if step.strictJSON {
+			args = append(args, "--strict-json")
+		}
+		if err := dockerExecAs(cli, containerID, user, args); err != nil {
+			return fmt.Errorf("config set %s: %w", step.path, err)
+		}
+	}
+	return nil
+}
+
+func channelPolicySteps(channel, channelCfg string) []configSetStep {
+	steps := []configSetStep{
+		{path: channelCfg + ".allowFrom", value: `["*"]`, strictJSON: true},
+		{path: channelCfg + ".dmPolicy", value: "open"},
+		{path: channelCfg + ".groupPolicy", value: "open"},
+	}
+
+	switch channel {
+	case "lark":
+		steps = append(steps, configSetStep{
+			path:  channelCfg + ".allowBots",
+			value: "mentions",
+		})
+	case "slack":
+		// OpenClaw's Slack schema only accepts a boolean here.
+		steps = append(steps, configSetStep{
+			path:       channelCfg + ".allowBots",
+			value:      "true",
+			strictJSON: true,
+		})
+	case "telegram":
+		steps = append(steps, configSetStep{
+			path:       channelCfg + ".groupAllowFrom",
+			value:      `["*"]`,
+			strictJSON: true,
+		})
+	case "discord":
+		steps = append(steps, configSetStep{
+			path:  channelCfg + ".allowBots",
+			value: "mentions",
+		})
+	}
+
+	return steps
 }
 
 // Configure runs openclaw CLI commands inside the container to set up the instance.
@@ -106,11 +162,30 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 	// Its credentials and policies are written BEFORE the gateway starts to
 	// avoid hot-reload race conditions.
 	//
-	// Other channels (Telegram, Discord, Slack) require a running gateway for
+	// Slack Socket Mode writes both tokens offline via channels add.
+	//
+	// Telegram and Discord require a running gateway for
 	// "channels add --token", so they follow the start→add→stop→policies→restart
 	// pattern.
-	hasChannelCreds := (p.Channel != "" && p.ChannelToken != "") ||
-		(p.Channel == "lark" && p.AppID != "" && p.AppSecret != "")
+	if p.Channel != "" {
+		switch p.Channel {
+		case "lark":
+			if p.AppID == "" || p.AppSecret == "" {
+				return fmt.Errorf("Lark App ID and App Secret are required")
+			}
+		case "slack":
+			if p.ChannelToken == "" {
+				return fmt.Errorf("Slack bot token is required")
+			}
+			if p.ChannelAppToken == "" {
+				return fmt.Errorf("Slack app token is required")
+			}
+		default:
+			if p.ChannelToken == "" {
+				return fmt.Errorf("channel token is required for %s", p.Channel)
+			}
+		}
+	}
 
 	if p.Channel == "lark" && p.AppID != "" && p.AppSecret != "" {
 		// Feishu: write all config offline (no running gateway needed).
@@ -124,21 +199,9 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 		}); err != nil {
 			return fmt.Errorf("config set channels.feishu.appSecret: %w", err)
 		}
-		// Set policies offline too.
 		channelCfg := "channels.feishu"
-		for _, s := range []struct{ path, value string }{
-			{channelCfg + ".allowFrom", `["*"]`},
-			{channelCfg + ".dmPolicy", "open"},
-			{channelCfg + ".groupPolicy", "open"},
-			{channelCfg + ".allowBots", "mentions"},
-		} {
-			args := []string{"openclaw", "config", "set", s.path, s.value}
-			if strings.HasPrefix(s.value, "[") {
-				args = append(args, "--strict-json")
-			}
-			if err := dockerExecAs(cli, p.ContainerID, "node", args); err != nil {
-				return fmt.Errorf("config set %s: %w", s.path, err)
-			}
+		if err := applyConfigSteps(cli, p.ContainerID, "node", channelPolicySteps("lark", channelCfg)); err != nil {
+			return err
 		}
 		// Start gateway with the complete config.
 		if err := dockerExecAs(cli, p.ContainerID, "root", []string{
@@ -149,8 +212,40 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 		if err := waitForGateway(cli, p.ContainerID, 30*time.Second); err != nil {
 			return fmt.Errorf("waiting for gateway: %w", err)
 		}
+	} else if p.Channel == "slack" && p.ChannelToken != "" && p.ChannelAppToken != "" {
+		if err := dockerExecAs(cli, p.ContainerID, "node", []string{
+			"openclaw", "channels", "add",
+			"--channel", "slack",
+			"--bot-token", p.ChannelToken,
+			"--app-token", p.ChannelAppToken,
+		}); err != nil {
+			return fmt.Errorf("channels add slack: %w", err)
+		}
+
+		channelCfg := "channels.slack"
+		if err := applyConfigSteps(cli, p.ContainerID, "node", channelPolicySteps("slack", channelCfg)); err != nil {
+			return err
+		}
+
+		if p.BotName != "" {
+			agentsList := fmt.Sprintf(`[{"id":"main","identity":{"name":"%s"}}]`, p.BotName)
+			if err := dockerExecAs(cli, p.ContainerID, "node", []string{
+				"openclaw", "config", "set", "agents.list", agentsList, "--strict-json",
+			}); err != nil {
+				return fmt.Errorf("config set agents.list: %w", err)
+			}
+		}
+
+		if err := dockerExecAs(cli, p.ContainerID, "root", []string{
+			"supervisorctl", "start", "openclaw",
+		}); err != nil {
+			return fmt.Errorf("supervisorctl start after Slack configure: %w", err)
+		}
+		if err := waitForGateway(cli, p.ContainerID, 30*time.Second); err != nil {
+			return fmt.Errorf("waiting for Slack gateway start: %w", err)
+		}
 	} else if p.Channel != "" && p.ChannelToken != "" {
-		// Other channels: start gateway → channels add → stop → policies → restart.
+		// Telegram/Discord: start gateway → channels add → stop → policies → restart.
 		if err := dockerExecAs(cli, p.ContainerID, "root", []string{
 			"supervisorctl", "start", "openclaw",
 		}); err != nil {
@@ -177,29 +272,8 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 		}
 
 		channelCfg := fmt.Sprintf("channels.%s", pluginName)
-		policySteps := []struct{ path, value string }{
-			{channelCfg + ".allowFrom", `["*"]`},
-			{channelCfg + ".dmPolicy", "open"},
-			{channelCfg + ".groupPolicy", "open"},
-		}
-		if p.Channel == "telegram" {
-			policySteps = append(policySteps, struct{ path, value string }{
-				channelCfg + ".groupAllowFrom", `["*"]`,
-			})
-		}
-		if p.Channel == "discord" || p.Channel == "slack" {
-			policySteps = append(policySteps, struct{ path, value string }{
-				channelCfg + ".allowBots", "mentions",
-			})
-		}
-		for _, s := range policySteps {
-			args := []string{"openclaw", "config", "set", s.path, s.value}
-			if strings.HasPrefix(s.value, "[") {
-				args = append(args, "--strict-json")
-			}
-			if err := dockerExecAs(cli, p.ContainerID, "node", args); err != nil {
-				return fmt.Errorf("config set %s: %w", s.path, err)
-			}
+		if err := applyConfigSteps(cli, p.ContainerID, "node", channelPolicySteps(p.Channel, channelCfg)); err != nil {
+			return err
 		}
 
 		// Set agent identity name for text @mention detection.
@@ -232,7 +306,6 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 			return fmt.Errorf("waiting for gateway: %w", err)
 		}
 	}
-	_ = hasChannelCreds // used in condition above
 
 	// Write .configured marker so gateway auto-starts on container restart.
 	if err := dockerExecAs(cli, p.ContainerID, "node", []string{

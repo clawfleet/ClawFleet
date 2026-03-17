@@ -35,6 +35,7 @@ export function ChannelAssets({ addToast }) {
       const result = await api.testChannelAsset({
         channel: channel.channel,
         token: channel.token,
+        app_token: channel.app_token,
         app_id: channel.app_id,
         app_secret: channel.app_secret,
       });
@@ -107,12 +108,21 @@ export function ChannelAssets({ addToast }) {
               <div class="asset-card-details">
                 ${c.channel === 'lark' ? html`
                   <div class="asset-detail">
-                    <span class="asset-detail-label">App ID</span>
+                    <span class="asset-detail-label">${t('assets.appID')}</span>
                     <span class="asset-detail-value mono">${maskToken(c.app_id)}</span>
+                  </div>
+                ` : c.channel === 'slack' ? html`
+                  <div class="asset-detail">
+                    <span class="asset-detail-label">${t('assets.botToken')}</span>
+                    <span class="asset-detail-value mono">${maskToken(c.token)}</span>
+                  </div>
+                  <div class="asset-detail">
+                    <span class="asset-detail-label">${t('assets.appToken')}</span>
+                    <span class="asset-detail-value mono">${maskToken(c.app_token)}</span>
                   </div>
                 ` : html`
                   <div class="asset-detail">
-                    <span class="asset-detail-label">Token</span>
+                    <span class="asset-detail-label">${t('assets.botToken')}</span>
                     <span class="asset-detail-value mono">${maskToken(c.token)}</span>
                   </div>
                 `}

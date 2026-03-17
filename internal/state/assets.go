@@ -27,6 +27,7 @@ type ChannelAsset struct {
 	Name      string `json:"name"`
 	Channel   string `json:"channel"`
 	Token     string `json:"token"`
+	AppToken  string `json:"app_token,omitempty"`
 	AppID     string `json:"app_id,omitempty"`
 	AppSecret string `json:"app_secret,omitempty"`
 	Validated bool   `json:"validated"`
@@ -75,6 +76,11 @@ func LoadAssets() (*AssetStore, error) {
 	var s AssetStore
 	if err := json.Unmarshal(data, &s); err != nil {
 		return nil, fmt.Errorf("parsing assets: %w", err)
+	}
+	for _, ch := range s.Channels {
+		if ch.Channel == "slack" && ch.AppToken == "" {
+			ch.Validated = false
+		}
 	}
 	s.path = path
 	return &s, nil

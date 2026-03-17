@@ -15,7 +15,11 @@ var configureCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Example: `  clawsandbox configure claw-1 \
     --provider anthropic --api-key sk-ant-... --model claude-sonnet-4-6 \
-    --channel telegram --channel-token 123456:ABC...`,
+    --channel telegram --channel-token 123456:ABC...
+
+  clawsandbox configure claw-1 \
+    --provider openai --api-key sk-... --model gpt-5.4 \
+    --channel slack --channel-token xoxb-... --channel-app-token xapp-...`,
 	RunE: runConfigure,
 }
 
@@ -26,6 +30,7 @@ func init() {
 	f.String("model", "", "Model ID (e.g. claude-sonnet-4-6)")
 	f.String("channel", "", "Chat channel (telegram, discord, slack, etc.)")
 	f.String("channel-token", "", "Channel bot token")
+	f.String("channel-app-token", "", "Slack app token for Socket Mode (xapp-...)")
 
 	_ = configureCmd.MarkFlagRequired("api-key")
 }
@@ -66,16 +71,27 @@ func runConfigure(cmd *cobra.Command, args []string) error {
 	model, _ := cmd.Flags().GetString("model")
 	channel, _ := cmd.Flags().GetString("channel")
 	channelToken, _ := cmd.Flags().GetString("channel-token")
+	channelAppToken, _ := cmd.Flags().GetString("channel-app-token")
+
+	if channel == "slack" {
+		if channelToken == "" {
+			return fmt.Errorf("Slack bot token is required (use --channel-token)")
+		}
+		if channelAppToken == "" {
+			return fmt.Errorf("Slack app token is required (use --channel-app-token)")
+		}
+	}
 
 	fmt.Printf("Configuring %s (this may take up to 30s while the gateway starts)...\n", name)
 
 	if err := container.Configure(cli, container.ConfigureParams{
-		ContainerID:  inst.ContainerID,
-		Provider:     provider,
-		APIKey:       apiKey,
-		Model:        model,
-		Channel:      channel,
-		ChannelToken: channelToken,
+		ContainerID:     inst.ContainerID,
+		Provider:        provider,
+		APIKey:          apiKey,
+		Model:           model,
+		Channel:         channel,
+		ChannelToken:    channelToken,
+		ChannelAppToken: channelAppToken,
 	}); err != nil {
 		return fmt.Errorf("configure failed: %w", err)
 	}

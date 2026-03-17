@@ -89,7 +89,7 @@ clawsandbox dashboard serve
 
 ![Character 配置](docs/images/assets-characters.png)
 
-**资产管理 → Channel 配置** — 接入消息平台（Telegram、Discord、Slack 等），这是员工服务客户的「工位」。可选；保存前自动验证。
+**资产管理 → Channel 配置** — 接入消息平台（Telegram、Discord、Slack 等），这是员工服务客户的「工位」。可选；保存前自动验证。Slack 跟随 OpenClaw 默认的 Socket Mode，需要同时提供 Bot Token 和 App Token。
 
 ![Channel 配置](docs/images/assets-channels.png)
 
@@ -158,6 +158,7 @@ clawsandbox dashboard --help    # 查看 dashboard 子命令组
 ```bash
 clawsandbox create <N>                  # 创建 N 个龙虾实例（需先构建镜像）
 clawsandbox create <N> --pull           # 创建 N 个实例，若镜像不存在则从 Registry 拉取
+clawsandbox configure <name>            # 为实例配置模型以及可选的 Channel 凭据
 clawsandbox list                        # 列出所有实例及状态
 clawsandbox desktop <name>              # 在浏览器中打开实例桌面
 clawsandbox start <name|all>            # 启动已停止的实例
