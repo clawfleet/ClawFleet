@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weiyong1024/clawfleet/internal/config"
-	"github.com/weiyong1024/clawfleet/internal/state"
+	"github.com/clawfleet/clawfleet/internal/config"
+	"github.com/clawfleet/clawfleet/internal/state"
 )
 
 var validName = regexp.MustCompile(`^[\p{L}\p{N}][\p{L}\p{N} _-]{0,63}$`)

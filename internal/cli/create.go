@@ -9,11 +9,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/weiyong1024/clawfleet/internal/config"
-	"github.com/weiyong1024/clawfleet/internal/container"
-	"github.com/weiyong1024/clawfleet/internal/port"
-	"github.com/weiyong1024/clawfleet/internal/snapshot"
-	"github.com/weiyong1024/clawfleet/internal/state"
+	"github.com/clawfleet/clawfleet/internal/config"
+	"github.com/clawfleet/clawfleet/internal/container"
+	"github.com/clawfleet/clawfleet/internal/port"
+	"github.com/clawfleet/clawfleet/internal/snapshot"
+	"github.com/clawfleet/clawfleet/internal/state"
 )
 
 var pullFlag bool

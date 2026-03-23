@@ -14,9 +14,9 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w
-      - -X github.com/weiyong1024/clawfleet/internal/version.Version=v{{.Version}}
-      - -X github.com/weiyong1024/clawfleet/internal/version.GitCommit={{.ShortCommit}}
-      - -X github.com/weiyong1024/clawfleet/internal/version.BuildDate={{.Date}}
+      - -X github.com/clawfleet/clawfleet/internal/version.Version=v{{.Version}}
+      - -X github.com/clawfleet/clawfleet/internal/version.GitCommit={{.ShortCommit}}
+      - -X github.com/clawfleet/clawfleet/internal/version.BuildDate={{.Date}}
     goos:
       - darwin
       - linux
@@ -44,7 +44,7 @@ changelog:
 
 release:
   github:
-    owner: weiyong1024
+    owner: clawfleet
     name: ClawFleet
   prerelease: auto
   name_template: "v{{.Version}}"
