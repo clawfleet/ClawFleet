@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/weiyong1024/clawfleet/internal/container"
-	"github.com/weiyong1024/clawfleet/internal/state"
+	"github.com/clawfleet/clawfleet/internal/container"
+	"github.com/clawfleet/clawfleet/internal/state"
 )
 
 var startCmd = &cobra.Command{

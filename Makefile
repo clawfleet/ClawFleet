@@ -1,6 +1,6 @@
 BINARY     = clawfleet
 BUILD_DIR  = ./bin
-MODULE     = github.com/weiyong1024/clawfleet
+MODULE     = github.com/clawfleet/clawfleet
 IMAGE      = ghcr.io/clawfleet/clawfleet:latest
 GO_BOOTSTRAP = ./scripts/ensure-go.sh --print-path
 

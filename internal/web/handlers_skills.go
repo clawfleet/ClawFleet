@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/weiyong1024/clawfleet/internal/container"
+	"github.com/clawfleet/clawfleet/internal/container"
 )
 
 // handleListInstanceSkills returns all skills available in the specified instance.

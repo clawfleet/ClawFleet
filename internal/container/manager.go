@@ -10,7 +10,7 @@ import (
 
 	docker "github.com/fsouza/go-dockerclient"
 
-	cfg "github.com/weiyong1024/clawfleet/internal/config"
+	cfg "github.com/clawfleet/clawfleet/internal/config"
 )
 
 type CreateParams struct {

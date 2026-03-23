@@ -13,7 +13,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/weiyong1024/clawfleet/internal/config"
+	"github.com/clawfleet/clawfleet/internal/config"
 )
 
 // NewServiceManager returns systemd if available, otherwise falls back to PID-based.

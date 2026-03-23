@@ -127,7 +127,7 @@ All design decisions, project structure, and code implementation must follow bes
 
 ## Wiki Documentation
 
-The project wiki lives in a separate repo (`git@github.com:weiyong1024/ClawFleet.wiki.git`) and is browsable at `https://github.com/weiyong1024/ClawFleet/wiki`. It is the primary documentation hub beyond the README.
+The project wiki lives in a separate repo (`git@github.com:clawfleet/ClawFleet.wiki.git`) and is browsable at `https://github.com/clawfleet/ClawFleet/wiki`. It is the primary documentation hub beyond the README.
 
 ### Wiki structure
 
@@ -183,7 +183,7 @@ Screenshots in `docs/images/` serve dual purposes: README documentation and exte
 ### How to edit the wiki
 
 ```bash
-git clone git@github.com:weiyong1024/ClawFleet.wiki.git /tmp/ClawFleet.wiki
+git clone git@github.com:clawfleet/ClawFleet.wiki.git /tmp/ClawFleet.wiki
 cd /tmp/ClawFleet.wiki
 # Edit files...
 git add . && git commit -m "describe the change" && git push

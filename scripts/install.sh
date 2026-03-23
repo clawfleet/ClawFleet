@@ -2,7 +2,7 @@
 
 set -eu
 
-REPO="weiyong1024/ClawFleet"
+REPO="clawfleet/ClawFleet"
 BINARY="clawfleet"
 IMAGE_REPO="ghcr.io/clawfleet/clawfleet"
 DOCKER_CMD="docker"
@@ -370,7 +370,7 @@ print_success() {
   printf "    clawfleet create 3           Create 3 instances\n"
   printf "    clawfleet list               List all instances\n"
   printf "\n"
-  printf "  Docs:    ${CYAN}https://github.com/weiyong1024/ClawFleet/wiki${RESET}\n"
+  printf "  Docs:    ${CYAN}https://github.com/clawfleet/ClawFleet/wiki${RESET}\n"
   printf "\n"
 }
 

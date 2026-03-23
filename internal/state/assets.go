@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/weiyong1024/clawfleet/internal/config"
+	"github.com/clawfleet/clawfleet/internal/config"
 )
 
 // ModelAsset represents a pre-configured LLM provider + API key + model combination.

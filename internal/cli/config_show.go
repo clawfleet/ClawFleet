@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/weiyong1024/clawfleet/internal/config"
+	"github.com/clawfleet/clawfleet/internal/config"
 )
 
 var configCmd = &cobra.Command{

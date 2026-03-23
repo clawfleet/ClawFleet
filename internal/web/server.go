@@ -15,8 +15,8 @@ import (
 
 	docker "github.com/fsouza/go-dockerclient"
 
-	"github.com/weiyong1024/clawfleet/internal/config"
-	"github.com/weiyong1024/clawfleet/internal/state"
+	"github.com/clawfleet/clawfleet/internal/config"
+	"github.com/clawfleet/clawfleet/internal/state"
 )
 
 // Server is the ClawFleet Web UI HTTP server.

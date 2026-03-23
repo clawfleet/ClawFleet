@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/weiyong1024/clawfleet/internal/config"
+	"github.com/clawfleet/clawfleet/internal/config"
 )
 
 // SnapshotMeta holds metadata for a saved instance snapshot.

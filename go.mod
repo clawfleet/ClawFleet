@@ -1,4 +1,4 @@
-module github.com/weiyong1024/clawfleet
+module github.com/clawfleet/clawfleet
 
 go 1.25.0
 

@@ -1,11 +1,11 @@
 # ClawFleet
 
-[![GitHub release](https://img.shields.io/github/v/release/weiyong1024/ClawFleet)](https://github.com/weiyong1024/ClawFleet/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/weiyong1024/ClawFleet/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/clawfleet/ClawFleet)](https://github.com/clawfleet/ClawFleet/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/clawfleet/ClawFleet/blob/main/LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![Docker](https://img.shields.io/badge/Docker-required-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey)](https://github.com/weiyong1024/ClawFleet)
-[![Wiki](https://img.shields.io/badge/Docs-Wiki-blue)](https://github.com/weiyong1024/ClawFleet/wiki)
+[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey)](https://github.com/clawfleet/ClawFleet)
+[![Wiki](https://img.shields.io/badge/Docs-Wiki-blue)](https://github.com/clawfleet/ClawFleet/wiki)
 
 🌐 **官网:** [clawfleet.io](https://clawfleet.io) · 💬 **社区:** [Discord](https://discord.gg/b5ZSRyrqbt)
 
@@ -64,7 +64,7 @@ curl -fsSL https://clawfleet.io/install.sh | sh
 4. 以后台守护进程启动仪表盘
 5. 在浏览器中打开 http://localhost:8080
 
-> **手动安装？** 参阅[快速入门](https://github.com/weiyong1024/ClawFleet/wiki/Getting-Started)。
+> **手动安装？** 参阅[快速入门](https://github.com/clawfleet/ClawFleet/wiki/Getting-Started)。
 
 ### 经营你的公司
 
@@ -128,12 +128,12 @@ curl -fsSL https://clawfleet.io/install.sh | sh
 
 ## 文档
 
-完整文档请参阅 **[Wiki](https://github.com/weiyong1024/ClawFleet/wiki)**，包括：
-- [快速开始](https://github.com/weiyong1024/ClawFleet/wiki/Getting-Started) — 前置要求、安装、第一个实例
-- [仪表盘指南](https://github.com/weiyong1024/ClawFleet/wiki/Dashboard-Guide) — 侧边栏导航、资产管理、实例管理
-- LLM 提供商指南 — [Anthropic](https://github.com/weiyong1024/ClawFleet/wiki/Provider-Anthropic) | [OpenAI](https://github.com/weiyong1024/ClawFleet/wiki/Provider-OpenAI) | [Google](https://github.com/weiyong1024/ClawFleet/wiki/Provider-Google) | [DeepSeek](https://github.com/weiyong1024/ClawFleet/wiki/Provider-DeepSeek)
-- 频道指南 — [Telegram](https://github.com/weiyong1024/ClawFleet/wiki/Channel-Telegram) | [Discord](https://github.com/weiyong1024/ClawFleet/wiki/Channel-Discord) | [Slack](https://github.com/weiyong1024/ClawFleet/wiki/Channel-Slack) | [Lark](https://github.com/weiyong1024/ClawFleet/wiki/Channel-Lark)
-- [CLI 参考](https://github.com/weiyong1024/ClawFleet/wiki/CLI-Reference) | [常见问题](https://github.com/weiyong1024/ClawFleet/wiki/FAQ)
+完整文档请参阅 **[Wiki](https://github.com/clawfleet/ClawFleet/wiki)**，包括：
+- [快速开始](https://github.com/clawfleet/ClawFleet/wiki/Getting-Started) — 前置要求、安装、第一个实例
+- [仪表盘指南](https://github.com/clawfleet/ClawFleet/wiki/Dashboard-Guide) — 侧边栏导航、资产管理、实例管理
+- LLM 提供商指南 — [Anthropic](https://github.com/clawfleet/ClawFleet/wiki/Provider-Anthropic) | [OpenAI](https://github.com/clawfleet/ClawFleet/wiki/Provider-OpenAI) | [Google](https://github.com/clawfleet/ClawFleet/wiki/Provider-Google) | [DeepSeek](https://github.com/clawfleet/ClawFleet/wiki/Provider-DeepSeek)
+- 频道指南 — [Telegram](https://github.com/clawfleet/ClawFleet/wiki/Channel-Telegram) | [Discord](https://github.com/clawfleet/ClawFleet/wiki/Channel-Discord) | [Slack](https://github.com/clawfleet/ClawFleet/wiki/Channel-Slack) | [Lark](https://github.com/clawfleet/ClawFleet/wiki/Channel-Lark)
+- [CLI 参考](https://github.com/clawfleet/ClawFleet/wiki/CLI-Reference) | [常见问题](https://github.com/clawfleet/ClawFleet/wiki/FAQ)
 
 ## CLI 命令
 

@@ -1,11 +1,11 @@
 # ClawFleet
 
-[![GitHub release](https://img.shields.io/github/v/release/weiyong1024/ClawFleet)](https://github.com/weiyong1024/ClawFleet/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/weiyong1024/ClawFleet/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/clawfleet/ClawFleet)](https://github.com/clawfleet/ClawFleet/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/clawfleet/ClawFleet/blob/main/LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![Docker](https://img.shields.io/badge/Docker-required-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey)](https://github.com/weiyong1024/ClawFleet)
-[![Wiki](https://img.shields.io/badge/Docs-Wiki-blue)](https://github.com/weiyong1024/ClawFleet/wiki)
+[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey)](https://github.com/clawfleet/ClawFleet)
+[![Wiki](https://img.shields.io/badge/Docs-Wiki-blue)](https://github.com/clawfleet/ClawFleet/wiki)
 
 🌐 **Website:** [clawfleet.io](https://clawfleet.io) · 💬 **Community:** [Discord](https://discord.gg/b5ZSRyrqbt)
 
@@ -64,7 +64,7 @@ This single command will:
 4. Start the Dashboard as a background daemon
 5. Open http://localhost:8080 in your browser
 
-> **Manual install?** See the [Getting Started](https://github.com/weiyong1024/ClawFleet/wiki/Getting-Started) wiki page.
+> **Manual install?** See the [Getting Started](https://github.com/clawfleet/ClawFleet/wiki/Getting-Started) wiki page.
 
 ### Run Your Company
 
@@ -128,12 +128,12 @@ Connect your fleet to messaging platforms and watch your AI employees work toget
 
 ## Documentation
 
-See the **[Wiki](https://github.com/weiyong1024/ClawFleet/wiki)** for full documentation, including:
-- [Getting Started](https://github.com/weiyong1024/ClawFleet/wiki/Getting-Started) — prerequisites, install, first instance
-- [Dashboard Guide](https://github.com/weiyong1024/ClawFleet/wiki/Dashboard-Guide) — sidebar navigation, asset management, fleet management
-- LLM Provider guides — [Anthropic](https://github.com/weiyong1024/ClawFleet/wiki/Provider-Anthropic) | [OpenAI](https://github.com/weiyong1024/ClawFleet/wiki/Provider-OpenAI) | [Google](https://github.com/weiyong1024/ClawFleet/wiki/Provider-Google) | [DeepSeek](https://github.com/weiyong1024/ClawFleet/wiki/Provider-DeepSeek)
-- Channel guides — [Telegram](https://github.com/weiyong1024/ClawFleet/wiki/Channel-Telegram) | [Discord](https://github.com/weiyong1024/ClawFleet/wiki/Channel-Discord) | [Slack](https://github.com/weiyong1024/ClawFleet/wiki/Channel-Slack) | [Lark](https://github.com/weiyong1024/ClawFleet/wiki/Channel-Lark)
-- [CLI Reference](https://github.com/weiyong1024/ClawFleet/wiki/CLI-Reference) | [FAQ](https://github.com/weiyong1024/ClawFleet/wiki/FAQ)
+See the **[Wiki](https://github.com/clawfleet/ClawFleet/wiki)** for full documentation, including:
+- [Getting Started](https://github.com/clawfleet/ClawFleet/wiki/Getting-Started) — prerequisites, install, first instance
+- [Dashboard Guide](https://github.com/clawfleet/ClawFleet/wiki/Dashboard-Guide) — sidebar navigation, asset management, fleet management
+- LLM Provider guides — [Anthropic](https://github.com/clawfleet/ClawFleet/wiki/Provider-Anthropic) | [OpenAI](https://github.com/clawfleet/ClawFleet/wiki/Provider-OpenAI) | [Google](https://github.com/clawfleet/ClawFleet/wiki/Provider-Google) | [DeepSeek](https://github.com/clawfleet/ClawFleet/wiki/Provider-DeepSeek)
+- Channel guides — [Telegram](https://github.com/clawfleet/ClawFleet/wiki/Channel-Telegram) | [Discord](https://github.com/clawfleet/ClawFleet/wiki/Channel-Discord) | [Slack](https://github.com/clawfleet/ClawFleet/wiki/Channel-Slack) | [Lark](https://github.com/clawfleet/ClawFleet/wiki/Channel-Lark)
+- [CLI Reference](https://github.com/clawfleet/ClawFleet/wiki/CLI-Reference) | [FAQ](https://github.com/clawfleet/ClawFleet/wiki/FAQ)
 
 ## CLI Reference
 

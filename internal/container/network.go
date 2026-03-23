@@ -5,7 +5,7 @@ import (
 
 	docker "github.com/fsouza/go-dockerclient"
 
-	"github.com/weiyong1024/clawfleet/internal/config"
+	"github.com/clawfleet/clawfleet/internal/config"
 )
 
 // EnsureNetwork creates the "clawfleet-net" container network if it does not

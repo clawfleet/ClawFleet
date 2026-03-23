@@ -7,7 +7,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/weiyong1024/clawfleet/internal/version"
+	"github.com/clawfleet/clawfleet/internal/version"
 )
 
 const (
