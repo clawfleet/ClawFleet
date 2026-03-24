@@ -370,6 +370,10 @@ print_success() {
   printf "    clawfleet create 3           Create 3 instances\n"
   printf "    clawfleet list               List all instances\n"
   printf "\n"
+  printf "  ${BOLD}Remote access:${RESET}\n"
+  printf "    clawfleet dashboard stop\n"
+  printf "    clawfleet dashboard start --host 0.0.0.0\n"
+  printf "\n"
   printf "  Docs:    ${CYAN}https://github.com/clawfleet/ClawFleet/wiki${RESET}\n"
   printf "\n"
 }
