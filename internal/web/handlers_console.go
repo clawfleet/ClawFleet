@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+// gatewayToken is the fixed token set via OPENCLAW_GATEWAY_TOKEN in supervisord.conf.
+// It authenticates the console proxy to the Gateway in LAN bind mode.
+const gatewayToken = "clawfleet"
+
 // handleConsoleProxy reverse-proxies requests to an instance's OpenClaw Gateway
 // web UI. This allows Dashboard users to access the control panel without
 // direct access to the container's loopback port.
@@ -47,6 +51,11 @@ func (s *Server) handleConsoleProxy(w http.ResponseWriter, r *http.Request) {
 				req.URL.Path = "/"
 			}
 			req.URL.RawPath = ""
+
+			// Authenticate to the Gateway using the fixed token
+			q := req.URL.Query()
+			q.Set("token", gatewayToken)
+			req.URL.RawQuery = q.Encode()
 		},
 	}
 

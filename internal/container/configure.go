@@ -121,12 +121,12 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 		}
 	}
 
-	// Enable non-loopback gateway access so the Dashboard console proxy
-	// can reach the Gateway web UI through Docker port mapping.
-	// auth.mode=none: Dashboard is the access-control layer; no gateway-level auth needed.
+	// Enable Dashboard console proxy access to the Gateway web UI.
+	// Token value is set via OPENCLAW_GATEWAY_TOKEN env var in supervisord.conf.
+	// auth.mode=token: required for --bind lan (LAN access needs authentication).
 	// allowedOrigins=["*"]: permits WebSocket connections from any Dashboard host.
 	if err := applyConfigSteps(cli, p.ContainerID, "node", []configSetStep{
-		{path: "gateway.auth", value: `{"mode":"none"}`, strictJSON: true},
+		{path: "gateway.auth", value: `{"mode":"token"}`, strictJSON: true},
 		{path: "gateway.controlUi.allowedOrigins", value: `["*"]`, strictJSON: true},
 	}); err != nil {
 		return fmt.Errorf("configure gateway access: %w", err)
