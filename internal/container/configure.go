@@ -123,10 +123,10 @@ func Configure(cli *docker.Client, p ConfigureParams) error {
 
 	// Enable non-loopback gateway access so the Dashboard console proxy
 	// can reach the Gateway web UI through Docker port mapping.
-	// auth=none: Dashboard is the access-control layer; no gateway-level auth needed.
+	// auth.mode=none: Dashboard is the access-control layer; no gateway-level auth needed.
 	// allowedOrigins=["*"]: permits WebSocket connections from any Dashboard host.
 	if err := applyConfigSteps(cli, p.ContainerID, "node", []configSetStep{
-		{path: "gateway.auth", value: "none"},
+		{path: "gateway.auth", value: `{"mode":"none"}`, strictJSON: true},
 		{path: "gateway.controlUi.allowedOrigins", value: `["*"]`, strictJSON: true},
 	}); err != nil {
 		return fmt.Errorf("configure gateway access: %w", err)
