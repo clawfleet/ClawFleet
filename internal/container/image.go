@@ -28,10 +28,18 @@ func ImageExists(cli *docker.Client, imageRef string) (bool, error) {
 	return false, nil
 }
 
-func Build(cli *docker.Client, imageRef string, out io.Writer) error {
+func Build(cli *docker.Client, imageRef string, openclawVersion string, out io.Writer) error {
 	buildCtx, err := createBuildContext()
 	if err != nil {
 		return fmt.Errorf("creating build context: %w", err)
+	}
+
+	var buildArgs []docker.BuildArg
+	if openclawVersion != "" {
+		buildArgs = append(buildArgs, docker.BuildArg{
+			Name:  "OPENCLAW_VERSION",
+			Value: openclawVersion,
+		})
 	}
 
 	err = cli.BuildImage(docker.BuildImageOptions{
@@ -39,6 +47,7 @@ func Build(cli *docker.Client, imageRef string, out io.Writer) error {
 		InputStream:    buildCtx,
 		OutputStream:   out,
 		RmTmpContainer: true,
+		BuildArgs:      buildArgs,
 	})
 	if err != nil {
 		return fmt.Errorf("build failed: %w", err)

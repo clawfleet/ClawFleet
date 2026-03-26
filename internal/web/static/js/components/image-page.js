@@ -32,6 +32,9 @@ export function ImagePage({ addToast }) {
   const [pulling, setPulling] = useState(false);
   const [pullLogs, setPullLogs] = useState([]);
   const [selectedFlavor, setSelectedFlavor] = useState('lightweight');
+  const [versions, setVersions] = useState(null);
+  const [selectedVersion, setSelectedVersion] = useState('');
+  const [versionsLoading, setVersionsLoading] = useState(true);
 
   const checkStatus = useCallback(async () => {
     try {
@@ -44,12 +47,27 @@ export function ImagePage({ addToast }) {
     }
   }, []);
 
-  useEffect(() => { checkStatus(); }, [checkStatus]);
+  const loadVersions = useCallback(async () => {
+    setVersionsLoading(true);
+    try {
+      const data = await api.openclawVersions();
+      setVersions(data);
+      setSelectedVersion(data.recommended);
+      if (data.error) addToast(t('image.versionError'), 'warning');
+    } catch {
+      setVersions({ recommended: '', versions: [], latest: '' });
+      addToast(t('image.versionError'), 'error');
+    } finally {
+      setVersionsLoading(false);
+    }
+  }, []);
 
-  const readSSE = async (endpoint, setLogs, successKey, failKey) => {
+  useEffect(() => { checkStatus(); loadVersions(); }, [checkStatus, loadVersions]);
+
+  const readSSE = async (endpoint, setLogs, successKey, failKey, fetchInit = {}) => {
     const proto = location.protocol === 'https:' ? 'https:' : 'http:';
     const url = `${proto}//${location.host}${endpoint}`;
-    const response = await fetch(url, { method: 'POST' });
+    const response = await fetch(url, { method: 'POST', ...fetchInit });
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -94,7 +112,10 @@ export function ImagePage({ addToast }) {
     setBuilding(true);
     setBuildLogs([]);
     try {
-      await readSSE('/api/v1/image/build', setBuildLogs, 'image.buildSuccess', 'image.buildFailed');
+      await readSSE('/api/v1/image/build', setBuildLogs, 'image.buildSuccess', 'image.buildFailed', {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ openclaw_version: selectedVersion }),
+      });
     } catch (err) {
       addToast(err.message, 'error');
     } finally {
@@ -140,6 +161,35 @@ export function ImagePage({ addToast }) {
             </div>
           `)}
         </div>
+      </div>
+
+      <div class="image-section">
+        <h3 class="section-title">${t('image.openclawVersion')}</h3>
+        ${versionsLoading
+          ? html`<p class="image-version-hint">${t('image.versionLoading')}</p>`
+          : html`
+            <select class="form-input image-version-select"
+              value=${selectedVersion}
+              onChange=${(e) => setSelectedVersion(e.target.value)}
+              disabled=${building || pulling}
+            >
+              ${versions?.recommended && html`
+                <option value=${versions.recommended}>
+                  ${versions.recommended} ★ ${t('image.versionRecommended')}
+                </option>
+              `}
+              ${versions?.latest && versions.latest !== versions.recommended && html`
+                <option value=${versions.latest}>
+                  ${versions.latest} (${t('image.versionLatest')})
+                </option>
+              `}
+              ${(versions?.versions || [])
+                .filter(v => v !== versions?.recommended && v !== versions?.latest)
+                .map(v => html`<option key=${v} value=${v}>${v}</option>`)
+              }
+            </select>
+          `
+        }
       </div>
 
       <div class="image-section">

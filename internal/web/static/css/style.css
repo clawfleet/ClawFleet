@@ -1231,6 +1231,9 @@ body {
   line-height: 1.7;
 }
 
+.image-version-select { max-width: 360px; margin-top: 0; }
+.image-version-hint   { font-size: 0.82rem; color: var(--text-dim); }
+
 /* ── Responsive ── */
 @media (max-width: 960px) {
   .desktop-body { flex-direction: column; }
