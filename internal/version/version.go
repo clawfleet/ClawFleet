@@ -11,6 +11,10 @@ var (
 
 var releaseTagPattern = regexp.MustCompile(`^v?\d+\.\d+\.\d+$`)
 
+// RecommendedOpenClawVersion is the OpenClaw version that has been tested
+// with this release of ClawFleet. Updated with each ClawFleet release.
+const RecommendedOpenClawVersion = "2026.3.24"
+
 // ImageTag returns the Docker image tag corresponding to this CLI version.
 // Only exact release tags (e.g. "v0.1.0") map to release images. Local git
 // describe builds such as "v0.1.0-44-gabcdef" or dirty builds fall back to

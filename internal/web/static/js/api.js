@@ -31,7 +31,8 @@ export const api = {
   getConfigStatus:   (name)        => request('GET',  `/instances/${encodeURIComponent(name)}/configure/status`),
 
   // Image
-  imageStatus: () => request('GET', '/image/status'),
+  imageStatus:      () => request('GET', '/image/status'),
+  openclawVersions: () => request('GET', '/image/openclaw-versions'),
 
   // Model assets
   listModelAssets:  ()           => request('GET',    '/assets/models'),

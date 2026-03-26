@@ -35,7 +35,8 @@ RUN mv /usr/bin/chromium /usr/bin/chromium-real \
     && update-alternatives --set x-www-browser /usr/bin/chromium
 
 # ── Layer 2: OpenClaw ─────────────────────────────────────────────────────────
-RUN npm install -g openclaw@latest \
+ARG OPENCLAW_VERSION=latest
+RUN npm install -g openclaw@${OPENCLAW_VERSION} \
     && if [ -d /usr/local/lib/node_modules/openclaw/extensions/feishu ]; then \
          cd /usr/local/lib/node_modules/openclaw/extensions/feishu && npm install --omit=dev; \
        fi

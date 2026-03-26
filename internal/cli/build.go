@@ -11,6 +11,8 @@ import (
 	"github.com/clawfleet/clawfleet/internal/version"
 )
 
+var openclawVersionFlag string
+
 var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Build the OpenClaw sandbox Docker image",
@@ -18,8 +20,13 @@ var buildCmd = &cobra.Command{
 This is only needed for offline use or customization.
 When connected to the internet, 'clawfleet create' auto-pulls the
 pre-built image from GHCR.`,
-	Example: "  clawfleet build",
+	Example: "  clawfleet build\n  clawfleet build --openclaw-version 2026.3.24",
 	RunE:    runBuild,
+}
+
+func init() {
+	buildCmd.Flags().StringVar(&openclawVersionFlag, "openclaw-version", "",
+		"OpenClaw version to install (default: recommended "+version.RecommendedOpenClawVersion+")")
 }
 
 func runBuild(cmd *cobra.Command, args []string) error {
@@ -33,10 +40,15 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	imageRef := cfg.ImageRef()
-	fmt.Fprintf(os.Stdout, "Building image %s ...\n\n", imageRef)
+	ocVersion := openclawVersionFlag
+	if ocVersion == "" {
+		ocVersion = version.RecommendedOpenClawVersion
+	}
 
-	if err := container.Build(cli, imageRef, os.Stdout); err != nil {
+	imageRef := cfg.ImageRef()
+	fmt.Fprintf(os.Stdout, "Building image %s with OpenClaw %s ...\n\n", imageRef, ocVersion)
+
+	if err := container.Build(cli, imageRef, ocVersion, os.Stdout); err != nil {
 		return fmt.Errorf("build failed: %w", err)
 	}
 

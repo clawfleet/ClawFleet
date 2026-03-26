@@ -188,6 +188,11 @@ const messages = {
     'image.buildLog':        'Build Log',
     'image.buildSuccess':    'Image built successfully',
     'image.buildFailed':     'Image build failed',
+    'image.openclawVersion':   'OpenClaw Version',
+    'image.versionLoading':    'Loading versions...',
+    'image.versionError':      'Could not fetch version list',
+    'image.versionRecommended':'recommended',
+    'image.versionLatest':     'latest',
 
     // Snapshots
     'sidebar.snapshots':       'Soul Archive',
@@ -399,6 +404,11 @@ const messages = {
     'image.buildLog':        '构建日志',
     'image.buildSuccess':    '镜像构建成功',
     'image.buildFailed':     '镜像构建失败',
+    'image.openclawVersion':   'OpenClaw 版本',
+    'image.versionLoading':    '加载版本中...',
+    'image.versionError':      '无法获取版本列表',
+    'image.versionRecommended':'推荐',
+    'image.versionLatest':     '最新',
 
     // Snapshots
     'sidebar.snapshots':       '灵魂存档',

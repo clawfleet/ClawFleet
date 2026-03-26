@@ -20,6 +20,7 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/instances/{name}/configure/status", s.handleConfigureStatus)
 	mux.HandleFunc("POST /api/v1/instances/{name}/restart-bot", s.handleRestartBot)
 	mux.HandleFunc("GET /api/v1/image/status", s.handleImageStatus)
+	mux.HandleFunc("GET /api/v1/image/openclaw-versions", s.handleOpenClawVersions)
 	mux.HandleFunc("POST /api/v1/image/build", s.handleImageBuild)
 	mux.HandleFunc("POST /api/v1/image/pull", s.handleImagePull)
 
