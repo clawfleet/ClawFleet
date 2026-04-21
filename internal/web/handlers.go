@@ -458,6 +458,11 @@ func (s *Server) handleResetInstance(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, fmt.Sprintf("instance %s not found", name))
 		return
 	}
+	if inst.IsHermes() {
+		writeError(w, http.StatusBadRequest,
+			"Not available for Hermes instances. Use the Hermes Dashboard.")
+		return
+	}
 
 	// Stop openclaw gateway if running.
 	status, _, _ := container.Status(s.docker, inst.ContainerID)
@@ -562,6 +567,11 @@ func (s *Server) handleRestartBot(w http.ResponseWriter, r *http.Request) {
 	inst := store.Get(name)
 	if inst == nil {
 		writeError(w, http.StatusNotFound, fmt.Sprintf("instance %s not found", name))
+		return
+	}
+	if inst.IsHermes() {
+		writeError(w, http.StatusBadRequest,
+			"Not available for Hermes instances. Use the Hermes Dashboard.")
 		return
 	}
 	if inst.Status != "running" {
