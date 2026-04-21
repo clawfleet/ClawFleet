@@ -29,6 +29,9 @@ const messages = {
     'status.suspended':      'suspended',
 
     'create.title':          'Create Instances',
+    'create.runtime':        'Runtime',
+    'create.runtimeOpenClaw':'🦞 OpenClaw',
+    'create.runtimeHermes':  '☤ Hermes',
     'create.label':          'Number of instances',
     'create.hint':           'Each instance uses ~4 GB RAM and 2 CPU cores.',
     'create.cancel':         'Cancel',
@@ -253,6 +256,9 @@ const messages = {
     'status.suspended':      '挂起中',
 
     'create.title':          '创建实例',
+    'create.runtime':        '运行时',
+    'create.runtimeOpenClaw':'🦞 OpenClaw',
+    'create.runtimeHermes':  '☤ Hermes',
     'create.label':          '实例数量',
     'create.hint':           '每个实例约占用 4 GB 内存和 2 个 CPU 核心。',
     'create.cancel':         '取消',

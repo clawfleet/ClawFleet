@@ -104,9 +104,9 @@ function App() {
     try { await fn(); } finally { setPending(p => { const n = { ...p }; delete n[name]; return n; }); }
   };
 
-  const onCreate = async (count, snapshotName) => {
+  const onCreate = async (count, snapshotName, runtime) => {
     try {
-      await api.createInstances(count, snapshotName);
+      await api.createInstances(count, snapshotName, runtime);
       addToast(t('toast.created', count), 'success');
       setShowCreate(false);
     } catch (err) {
