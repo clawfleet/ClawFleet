@@ -20,20 +20,28 @@ import (
 
 // instanceResponse is the JSON representation of a single instance.
 type instanceResponse struct {
-	Name             string    `json:"name"`
-	Status           string    `json:"status"`
-	NoVNC            int       `json:"novnc_port"`
-	Gateway          int       `json:"gateway_port"`
-	CreatedAt        time.Time `json:"created_at"`
-	ModelAssetID     string    `json:"model_asset_id,omitempty"`
-	ChannelAssetID   string    `json:"channel_asset_id,omitempty"`
-	CharacterAssetID string    `json:"character_asset_id,omitempty"`
-	ModelName        string    `json:"model_name,omitempty"`
-	ChannelName      string    `json:"channel_name,omitempty"`
-	CharacterName    string    `json:"character_name,omitempty"`
+	Name                string    `json:"name"`
+	Status              string    `json:"status"`
+	NoVNC               int       `json:"novnc_port"`
+	Gateway             int       `json:"gateway_port"`
+	CreatedAt           time.Time `json:"created_at"`
+	ModelAssetID        string    `json:"model_asset_id,omitempty"`
+	ChannelAssetID      string    `json:"channel_asset_id,omitempty"`
+	CharacterAssetID    string    `json:"character_asset_id,omitempty"`
+	ModelName           string    `json:"model_name,omitempty"`
+	ChannelName         string    `json:"channel_name,omitempty"`
+	CharacterName       string    `json:"character_name,omitempty"`
+	RuntimeType         string    `json:"runtime_type"`
+	HermesDashboardPort int       `json:"hermes_dashboard_port,omitempty"`
+	HermesGatewayPort   int       `json:"hermes_gateway_port,omitempty"`
 }
 
 func instanceToResponse(inst state.Instance, assets *state.AssetStore) instanceResponse {
+	runtimeType := inst.RuntimeType
+	if runtimeType == "" {
+		runtimeType = "openclaw"
+	}
+
 	resp := instanceResponse{
 		Name:             inst.Name,
 		Status:           inst.Status,
@@ -43,7 +51,14 @@ func instanceToResponse(inst state.Instance, assets *state.AssetStore) instanceR
 		ModelAssetID:     inst.ModelAssetID,
 		ChannelAssetID:   inst.ChannelAssetID,
 		CharacterAssetID: inst.CharacterAssetID,
+		RuntimeType:      runtimeType,
 	}
+
+	if runtimeType == "hermes" {
+		resp.HermesDashboardPort = inst.Ports.NoVNC
+		resp.HermesGatewayPort = inst.Ports.Gateway
+	}
+
 	if assets != nil {
 		if m := assets.GetModel(inst.ModelAssetID); m != nil {
 			resp.ModelName = m.Name
